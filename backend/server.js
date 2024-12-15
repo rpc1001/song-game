@@ -2,68 +2,41 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const app = express();
+const cors = require('cors');
+
+app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
     res.send('Welcome to Song Game.');
 });
-
-// Route to get an access token
-app.get('/auth', async (req, res) => {
+app.get('/songs', async (req, res) => {
     try {
-        const response = await axios.post(
-            'https://accounts.spotify.com/api/token',
-            new URLSearchParams({
-                grant_type: 'client_credentials',
-            }),
-            {
-                headers: {
-                    Authorization: `Basic ${Buffer.from(
-                        `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-                    ).toString('base64')}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-            }
-        );
+        const trackId = '500099612';
+        const response = await axios.get(`https://api.deezer.com/track/${trackId}`);
         res.json(response.data);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    } catch (error) {
+        console.error('Error fetching song:', error.message);
+        res.status(500).json({ error: 'Failed to fetch song data' });
     }
 });
 
-app.get('/songs', async (req, res) => {
+
+app.get('/random-song', async (req, res) => {
     try {
-        const tokenResponse = await axios.post(
-            'https://accounts.spotify.com/api/token',
-            new URLSearchParams({ grant_type: 'client_credentials' }),
-            {
-                headers: {
-                    Authorization: `Basic ${Buffer.from(
-                        `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-                    ).toString('base64')}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-            }
-        );
-        const accessToken = tokenResponse.data.access_token;
-
-        // Fetch a specific track from Spotify
-        const trackId = '2eAZfqOm4EnOF9VvN50Tyc'; // Replace with a valid track ID
-        const trackResponse = await axios.get(
-            `https://api.spotify.com/v1/tracks/${trackId}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            }
-        );
-
-        // Respond with track data
-        res.json(trackResponse.data);
-    } catch (err) {
-        console.error('Error fetching song data:', err.response?.data || err.message);
-        res.status(500).json({ error: err.message });
+        const response = await axios.get('https://api.deezer.com/chart'); // Fetch popular tracks
+        const randomSong = response.data.tracks.data[
+            Math.floor(Math.random() * response.data.tracks.data.length)
+        ];
+        res.json({
+            id: randomSong.id,
+            title: randomSong.title, // Hide on frontend
+            artist: randomSong.artist.name,
+            preview: randomSong.preview,
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch a random song' });
     }
 });
 
