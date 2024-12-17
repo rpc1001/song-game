@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import stringSimilarity from "string-similarity";
+import Header from "./components/Header";
 
 
 export default function App() {
@@ -19,23 +20,31 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false); // if snippet playing
   const [showEndGameModal, setShowEndGameModal] = useState<boolean>(false);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
-
-
+  const [gameMode, setGameMode] = useState<"daily" | "artist" | "genre">("daily");
+  const [selectedGenre, setSelectedGenre] = useState<string>("Hip-Hop");
+  const [artistQuery, setArtistQuery] = useState<string>("");
+  
 
   // fetch a random song from the backend
+  const fetchSong = async () => {
+    try {
+      const endpoint =
+        gameMode === "daily" ? "http://localhost:3000/daily-challenge" : "http://localhost:3000/unlimited-play";
+  
+      const response = await axios.get(endpoint);
+      setSong(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching song:", error.message);
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    axios
-      .get("http://localhost:3000/random-song")
-      .then((response) => {
-        console.log("Song:", response.data); // debug
-        setSong(response.data);
-        setLoading(false); // turn off loading state
-      })
-      .catch((error) => {
-        console.error("Error getting song:", error); // log error
-        setLoading(false);
-      });
-  }, []);
+    setLoading(true);
+    fetchSong();
+  }, [gameMode]);
+  
 
   // play snippet when the button clicked
   const handlePlaySnippet = () => {
@@ -94,7 +103,7 @@ export default function App() {
 
       setPastGuesses((prev) => [
         ...prev.slice(0, MAX_GUESSES - 1),
-        guess.trim() ? guess : " ",
+        guess.trim() ? guess : "Skipped Guess",
       ]);          
 
       // compare guess with the song title
@@ -132,29 +141,8 @@ export default function App() {
   
   return (
     <div className="flex flex-col min-h-screen bg-zinc-800 text-white font-sans">
-      {/* Header */}
-      <header className="fixed top-0 w-full flex items-center justify-between px-6 py-4 bg-zinc-900 bg-opacity-80 shadow-md z-10">
-        <div className="text-2xl font-bold text-violet-400 flex items-center gap-2">
-          <span role="img" aria-label="music-note">🎵</span>
-          <span>Tempo Run</span>
-        </div>
-  
-        <nav className="flex items-center gap-6 text-gray-300">
-          <span className="text-white underline underline-offset-4 decoration-violet-400">
-            Daily Challenge
-          </span>
-          <span>Genres</span>
-          <span>Playlists</span>
-          <span>Artists</span>
-          <button
-            className="text-white bg-violet-400 px-3 py-1 rounded-full hover:bg-violet-600 transition duration-300"
-            onClick={() => setShowHelpModal(true)}
-          >
-            ?
-          </button>
-        </nav>
-      </header>
-  
+      {/* Updated Header */}
+      <Header gameMode={gameMode} setGameMode={setGameMode} />      
       {/* Main Content */}
       <div className="flex-grow flex flex-col items-center justify-center mt-20 px-4">
         {loading ? (
@@ -213,7 +201,7 @@ export default function App() {
               className={`relative text-white px-6 py-2 rounded-lg transition-all duration-300 ${
                 isPlaying
                   ? "bg-violet-600 cursor-default opacity-80 animate-pulse"
-                  : "bg-violet-400 hover:bg-violet-500 hover:shadow-md"
+                  : "bg-violet-400 hover:bg-violet-600 hover:shadow-md"
               }`}
               style={{ marginTop: "1rem", zIndex: 1 }} 
             >
@@ -244,55 +232,59 @@ export default function App() {
       </div>
       {/* End Game Modal */}
       {showEndGameModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-zinc-800 p-6 rounded-lg shadow-lg w-80 text-center relative">
-            {/* Close Button */}
+      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="bg-zinc-800 p-6 rounded-lg shadow-lg w-80 text-center relative">
+          {/* Close Button */}
+          <button
+            className="absolute top-2 right-2 text-gray-300 hover:text-gray-500"
+            onClick={() => setShowEndGameModal(false)}
+          >
+            ✖
+          </button>
+
+          {/* Game Result */}
+          <h2 className="text-2xl font-bold mb-4 text-violet-400">
+            {isCorrect ? "You Guessed It!" : "Game Over"}
+          </h2>
+          <p className="text-gray-300 mb-4">
+            The song was <span className="text-white font-bold">{song.title}</span> by{" "}
+            <span className="text-white font-bold">{song.artist}</span>.
+          </p>
+          <p className="text-white font-bold gap-4 mb-4">
+          Try our other game modes:
+          </p>
+
+          {/* Genres and Artists */}
+          <div className="flex justify-between gap-4 mb-4">
             <button
-              className="absolute top-2 right-2 text-gray-300 hover:text-gray-500"
-              onClick={() => setShowEndGameModal(false)}
-            >
-              ✖
-            </button>
-
-            {/* Result Title */}
-            <h2 className="text-2xl font-bold mb-4 text-violet-400">
-              {isCorrect ? "You Guessed It" : "Game Over"}
-            </h2>
-
-            {/* Song Recap */}
-            <p className="text-gray-300 mb-4">
-              The song was <span className="text-white font-bold">{song.title}</span> by{" "}
-              <span className="text-white font-bold">{song.artist}</span>.
-            </p>
-
-            {/* Play Again and Explore Buttons */}
-            <div className="space-y-2">
-            <button
-              className="bg-violet-500 text-white px-4 py-2 rounded-lg w-full hover:bg-violet-600"
+              className="flex-1 bg-violet-400 text-white px-4 py-2 rounded-lg hover:bg-violet-600 transition"
               onClick={() => {
+                setGameMode("genre");
                 setShowEndGameModal(false);
-                setIsPlaying(false);
-                if (audioRef.current) audioRef.current.pause();
-                alert("Play Again feature coming soon...");
               }}
             >
-              Play Again
+              Genres
             </button>
 
             <button
-              className="bg-gray-700 text-white px-4 py-2 rounded-lg w-full hover:bg-gray-600"
+              className="flex-1 bg-violet-400 text-white px-4 py-2 rounded-lg hover:bg-violet-600 transition"
               onClick={() => {
+                setGameMode("artist");
                 setShowEndGameModal(false);
-                setIsPlaying(false);
-                if (audioRef.current) audioRef.current.pause();
-                alert("Other game modes coming soon...");
               }}
             >
-              Explore Other Modes
+              Artists
             </button>
-            </div>
           </div>
-        </div>
+          {/* Share Button */}
+          <button
+            className="bg-violet-600 text-white px-4 py-2 rounded-lg w-full hover:bg-violet-400 transition"
+            onClick={() => alert("Share functionality coming soon!")}
+          >
+            Share
+          </button>
+      </div>
+      </div>
       )}
       {/* Help Modal */}
       {showHelpModal && (
