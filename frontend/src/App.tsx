@@ -17,7 +17,10 @@ export default function App() {
   const audioRef = useRef<HTMLAudioElement | null>(null); // reference to  audio element
   const [progress, setProgress] = useState<number>(0); // snippet progress percentage
   const [isPlaying, setIsPlaying] = useState<boolean>(false); // if snippet playing
-  
+  const [showEndGameModal, setShowEndGameModal] = useState<boolean>(false);
+  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+
+
 
   // fetch a random song from the backend
   useEffect(() => {
@@ -97,8 +100,14 @@ export default function App() {
       // compare guess with the song title
       if (similarity > 0.9) {
         setIsCorrect(true); // correct guess
+        setShowEndGameModal(true);
       } else {
-        setRemainingGuesses((prev) => prev - 1); // dec remaining guesses
+        setRemainingGuesses((prev) => {
+          if(prev - 1 <= 0){
+            setShowEndGameModal(true);
+          }
+          return prev -1;
+        }); // dec remaining guesses
         setSnippetDuration((prev) => prev * 2); // double snippet duration
       }
 
@@ -114,6 +123,13 @@ export default function App() {
     }
   }, [currentSlot, loading]); 
 
+  useEffect(()=>{
+    if(showEndGameModal && audioRef.current){
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+    }
+  }, [showEndGameModal]);
+  
   return (
     <div className="flex flex-col min-h-screen bg-zinc-800 text-white font-sans">
       {/* Header */}
@@ -132,7 +148,7 @@ export default function App() {
           <span>Artists</span>
           <button
             className="text-white bg-violet-400 px-3 py-1 rounded-full hover:bg-violet-600 transition duration-300"
-            onClick={() => alert("Help modal coming soon!")}
+            onClick={() => setShowHelpModal(true)}
           >
             ?
           </button>
@@ -226,6 +242,88 @@ export default function App() {
           <p>Failed to load song. Try refreshing :/</p>
         )}
       </div>
+      {/* End Game Modal */}
+      {showEndGameModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-zinc-800 p-6 rounded-lg shadow-lg w-80 text-center relative">
+            {/* Close Button */}
+            <button
+              className="absolute top-2 right-2 text-gray-300 hover:text-gray-500"
+              onClick={() => setShowEndGameModal(false)}
+            >
+              ✖
+            </button>
+
+            {/* Result Title */}
+            <h2 className="text-2xl font-bold mb-4 text-violet-400">
+              {isCorrect ? "You Guessed It" : "Game Over"}
+            </h2>
+
+            {/* Song Recap */}
+            <p className="text-gray-300 mb-4">
+              The song was <span className="text-white font-bold">{song.title}</span> by{" "}
+              <span className="text-white font-bold">{song.artist}</span>.
+            </p>
+
+            {/* Play Again and Explore Buttons */}
+            <div className="space-y-2">
+            <button
+              className="bg-violet-500 text-white px-4 py-2 rounded-lg w-full hover:bg-violet-600"
+              onClick={() => {
+                setShowEndGameModal(false);
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.pause();
+                alert("Play Again feature coming soon...");
+              }}
+            >
+              Play Again
+            </button>
+
+            <button
+              className="bg-gray-700 text-white px-4 py-2 rounded-lg w-full hover:bg-gray-600"
+              onClick={() => {
+                setShowEndGameModal(false);
+                setIsPlaying(false);
+                if (audioRef.current) audioRef.current.pause();
+                alert("Other game modes coming soon...");
+              }}
+            >
+              Explore Other Modes
+            </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Help Modal */}
+      {showHelpModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setShowHelpModal(false)} // closes modal when clicking outside
+        >
+          <div
+            className="bg-zinc-800 p-6 rounded-lg shadow-lg w-80 text-center relative"
+            onClick={(e) => e.stopPropagation()} // avoid closing when clicking inside
+          >
+            {/* Close Button */}
+            <button
+              className="absolute top-2 right-2 text-gray-300 hover:text-gray-500"
+              onClick={() => setShowHelpModal(false)}
+            >
+              ✖
+            </button>
+
+            {/* Help Content */}
+            <h2 className="text-2xl font-bold mb-4 text-violet-400">How to Play</h2>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              - Press <b>Play</b> to listen to a snippet of a song. <br />
+              - Type your guess in the input box and press <b>Enter</b>. <br />
+              - Each incorrect guess <b>doubles</b> the snippet length. <br />
+              - You have <b>5 chances</b> to guess the song correctly.
+            </p>
+          </div>
+        </div>
+      )}
+
     </div>
   );  
 }
