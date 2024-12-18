@@ -135,6 +135,7 @@ export default function App() {
       setCurrentSlot((prev) => prev + 1); // move to next slot
     }
   };
+
   useEffect(() => { // set input to the current guess box
     if (inputRef.current) {
       inputRef.current.focus();
@@ -148,6 +149,14 @@ export default function App() {
       audioRef.current.play();
     }
   }, [showEndGameModal]);
+
+  useEffect(() => { // reset game  if genre switch or game
+    if (gameMode === "genre" && selectedGenre) {
+      resetGame(); 
+    } else if (gameMode !== "genre") {
+      resetGame(); 
+    }
+  }, [selectedGenre, gameMode]);
 
   const resetGame = () => {
     setIsCorrect(false);
