@@ -1,7 +1,7 @@
 @tailwind base;
-@tailwind ;
+@tailwind;
 @tailwind utilities;
 
 body {
-    @apply bg-gradient-to-b from-gray-900 via-gray-800 to-purple-900 text-white font-inter;
-  }  
+  @apply bg-gradient-to-b from-gray-900 via-gray-800 to-purple-900 text-white font-inter;
+}

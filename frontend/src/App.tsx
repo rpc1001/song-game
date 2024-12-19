@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import stringSimilarity from "string-similarity";
-import Header from "./components/Header";
 
+import Header from "./components/Header";
+import GuessSlots from "./components/GuessSlots";
+import ProgressBar from "./components/ProgressBar";
+import PlayButton from "./components/PlayButton";
+import EndGameModal from "./components/EndGameModal";
+import HelpModal from "./components/HelpModal";
 
 export default function App() {
   const MAX_GUESSES = 5;
@@ -38,10 +43,11 @@ export default function App() {
         endpoint = `http://localhost:3000/genre?genre=${encodeURIComponent(selectedGenre)}`;
         console.log("selected");
       } else if (gameMode === "artist") {
-        endpoint = `http://localhost:3000/artist=${encodeURIComponent(artistQuery)}`;
+        endpoint = `http://localhost:3000/artist?artist=${encodeURIComponent(artistQuery)}`;
       }
   
       const response = await axios.get(endpoint);
+      console.log(response.data);
       setSong(response.data);
       setLoading(false);
     } catch (error) {
@@ -61,38 +67,39 @@ export default function App() {
     if (audioRef.current) {
       // audio to start of snippet
       audioRef.current.currentTime = 0;
-      audioRef.current.play();
-  
-      setIsPlaying(true);
-      setProgress(0);
-  
-      const interval = 50; // update progress every 50ms
-      const totalSnippetTime = snippetDuration; // current snippet duration in seconds
+      audioRef.current.play()
+        .then(()=>{
+          setIsPlaying(true);
+          setProgress(0);
       
-      const progressInterval = setInterval(() => {
-        if (audioRef.current) {
-          const currentTime = audioRef.current.currentTime;
+          const interval = 50; // update progress every 50ms
+          const totalSnippetTime = snippetDuration; // current snippet duration in seconds
           
-          // progress as a percentage of the snippet duration
-          const newProgress = Math.min((currentTime / totalSnippetTime) * 100, 100);
-          setProgress(newProgress);
-  
-          // stop playing and clear interval
-          if (currentTime >= totalSnippetTime) {
-            audioRef.current.pause();
+          const progressInterval = setInterval(() => {
+            if (audioRef.current) {
+              const currentTime = audioRef.current.currentTime;
+              
+              // progress as a percentage of the snippet duration
+              const newProgress = Math.min((currentTime / totalSnippetTime) * 100, 100);
+              setProgress(newProgress);
+      
+              // stop playing and clear interval
+              if (currentTime >= totalSnippetTime) {
+                audioRef.current.pause();
+                clearInterval(progressInterval);
+                setProgress(100);
+                setIsPlaying(false);
+              }
+            }
+          }, interval);
+      
+          // cleanup audio stuff
+          audioRef.current.onended = () => {
             clearInterval(progressInterval);
             setProgress(100);
             setIsPlaying(false);
-          }
-        }
-      }, interval);
-  
-      // cleanup audio stuff
-      audioRef.current.onended = () => {
-        clearInterval(progressInterval);
-        setProgress(100);
-        setIsPlaying(false);
-      };
+          };
+      })
     }
   };
   
@@ -116,7 +123,7 @@ export default function App() {
       ]);          
 
       // compare guess with the song title
-      if (similarity > 0.9) {
+      if (similarity > 0.85) {
         setIsCorrect(true); // correct guess
         setShowEndGameModal(true);
       } else {
@@ -182,6 +189,7 @@ export default function App() {
       artistInput={artistQuery}
       setArtistInput={setArtistQuery} 
       setIsReadyToPlay={setIsReadyToPlay}
+      setShowHelpModal={setShowHelpModal}
       />
       {/* Main Content */}
       <div className="flex-grow flex flex-col items-center justify-center mt-20 px-4">
@@ -190,71 +198,32 @@ export default function App() {
         ) : song ? (
           <div className="text-center w-full max-w-md">
             <h1 className="text-3xl font-bold mb-6">Guess the Song</h1>
-  
-            {/* Guess Slots */}
-            <div className="space-y-2 mb-6 w-full flex flex-col items-center">
-              {Array.from({ length: MAX_GUESSES }, (_, index) => (
-                <div
-                  key={index}
-                  className={`h-12 flex items-center justify-center w-full rounded-lg text-center text-lg font-bold ${
-                    index === currentSlot
-                      ? "border-2 border-violet-400 bg-transparent"
-                      : pastGuesses[index]
-                      ? "bg-zinc-700 text-gray-300"
-                      : "bg-zinc-600"
-                  }`}
-                >
-                  {index === currentSlot ? (
-                    <input
-                      ref={index === currentSlot ? inputRef : null} // ref active input
-                      type="text"
-                      value={guess}
-                      onChange={(e) => setGuess(e.target.value)}
-                      onKeyDown={(e) => handleGuess(e)}
-                      className="w-full bg-transparent text-center text-white border-0 focus:outline-none placeholder-gray-400"
-                      placeholder="Enter your guess..."
-                      disabled={!isReadyToPlay || isCorrect || currentSlot >= MAX_GUESSES}
-                      />
-                  ) : (
-                    <span className="truncate">{pastGuesses[index] || ""}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-            {/* Progress Bar */}
-            <div className="relative w-full mt-4 h-2 bg-zinc-700 rounded-full overflow-hidden">
-              {/* Snippet Duration Segment*/}
-              <div
-                className="absolute top-0 left-0 h-full bg-gray-500"
-                style={{ width: `${(snippetDuration / 16) * 100}%` }}
-              >
-                {/* Playback Progress */}
-                <div
-                  className="h-full bg-violet-500 transition-all duration-150"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-            </div>
-            {/* Play Button */}
-            <button
-              onClick={handlePlaySnippet}
-              disabled={!isReadyToPlay}
-              className={`relative text-white px-6 py-2 rounded-lg transition-all duration-300 ${
-                !isReadyToPlay
-                  ? "bg-gray-600 cursor-not-allowed opacity-50"
-                  : isPlaying
-                  ? "bg-violet-600 cursor-default opacity-80 animate-pulse"
-                  : "bg-violet-400 hover:bg-violet-600 hover:shadow-md"
-              }`}
-              style={{ marginTop: "1rem", zIndex: 1 }}
-            >
-              {isPlaying ? "Playing..." : "Play"}
-            </button>
+            <GuessSlots
+              MAX_GUESSES={MAX_GUESSES}
+              currentSlot={currentSlot}
+              pastGuesses={pastGuesses}
+              guess={guess}
+              setGuess={setGuess}
+              handleGuess={handleGuess}
+              isReadyToPlay={isReadyToPlay}
+              isCorrect={isCorrect}
+              inputRef={inputRef}
+            />
+            <ProgressBar
+              progress={progress}
+              snippetDuration={snippetDuration}
+              maxDuration={16} // Example max duration
+            />
+            <PlayButton
+              isPlaying={isPlaying}
+              isReadyToPlay={isReadyToPlay}
+              handlePlaySnippet={handlePlaySnippet}
+            />
             {/* Remaining Guesses */}
             <p className="mt-4 text-gray-400">
               Remaining Guesses: {remainingGuesses}
             </p>
-  
+
             {remainingGuesses <= 0 && (
               <p className="text-red-400 mt-4">
                 Game Over. The correct answer was "{song.title}".
@@ -268,106 +237,34 @@ export default function App() {
             )}
   
             <audio ref={audioRef} src={song.preview} />
+            <EndGameModal
+              isVisible={showEndGameModal}
+              onClose={() => setShowEndGameModal(false)}
+              isCorrect={isCorrect}
+              songTitle={song.title}
+              songArtist={song.artist}
+              gameMode={gameMode}
+              onSwitchToGenre={() => {
+                setGameMode("genre");
+                resetGame();
+              }}
+              onSwitchToArtist={() => {
+                setGameMode("artist");
+                resetGame();
+              }}
+              onPlayAgain={() => {
+                resetGame();
+              }}
+            />
+            <HelpModal isVisible={showHelpModal} onClose={() => setShowHelpModal(false)} />
           </div>
+          
         ) : (
           <p>Failed to load song. Try refreshing :/</p>
         )}
       </div>
-      {showEndGameModal && (
-      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-        <div className="bg-zinc-800 p-6 rounded-lg shadow-lg w-80 text-center relative">
-          <button
-            className="absolute top-2 right-2 text-gray-300 hover:text-gray-500"
-            onClick={() => setShowEndGameModal(false)}
-          >
-            ✖
-          </button>
-
-          <h2 className="text-2xl font-bold mb-4 text-violet-400">
-            {isCorrect ? "You Guessed It!" : "Game Over"}
-          </h2>
-          <p className="text-gray-300 mb-4">
-            The song was <span className="text-white font-bold">{song.title}</span> by{" "}
-            <span className="text-white font-bold">{song.artist}</span>.
-          </p>
-
-          {/* Mode-Specific Buttons */}
-          {gameMode === "daily" ? (
-            <div className="flex justify-between gap-4 mb-4">
-              <button
-                className="flex-1 bg-violet-400 text-white px-4 py-2 rounded-lg hover:bg-violet-600 transition"
-                onClick={() => {
-                  setGameMode("genre");
-                  resetGame();
-                  setShowEndGameModal(false);
-                }}
-              >
-                Genres
-              </button>
-
-              <button
-                className="flex-1 bg-violet-400 text-white px-4 py-2 rounded-lg hover:bg-violet-600 transition"
-                onClick={() => {
-                  setGameMode("artist");
-                  resetGame();
-                  setShowEndGameModal(false);
-                }}
-              >
-                Artists
-              </button>
-            </div>
-          ) : (
-            <button
-              className="bg-violet-600 text-white px-4 py-2 rounded-lg w-full hover:bg-violet-400 transition mb-4"
-              onClick={() => {
-                setShowEndGameModal(false);
-                resetGame();
-              }}
-            >
-              Play Again
-            </button>
-          )}
-
-          {/* Share Button */}
-          <button
-            className="bg-violet-400 text-white px-4 py-2 rounded-lg w-full hover:bg-violet-600 transition"
-            onClick={() => alert("Share functionality coming soon!")}
-          >
-            Share
-          </button>
-        </div>
-      </div>
-    )}
-
-      {/* Help Modal */}
-      {showHelpModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-          onClick={() => setShowHelpModal(false)} // closes modal when clicking outside
-        >
-          <div
-            className="bg-zinc-800 p-6 rounded-lg shadow-lg w-80 text-center relative"
-            onClick={(e) => e.stopPropagation()} // avoid closing when clicking inside
-          >
-            {/* Close Button */}
-            <button
-              className="absolute top-2 right-2 text-gray-300 hover:text-gray-500"
-              onClick={() => setShowHelpModal(false)}
-            >
-              ✖
-            </button>
-
-            {/* Help Content */}
-            <h2 className="text-2xl font-bold mb-4 text-violet-400">How to Play</h2>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              - Press <b>Play</b> to listen to a snippet of a song. <br />
-              - Type your guess in the input box and press <b>Enter</b>. <br />
-              - Each incorrect guess <b>doubles</b> the snippet length. <br />
-              - You have <b>5 chances</b> to guess the song correctly.
-            </p>
-          </div>
-        </div>
-      )}
+          
+      
 
     </div>
   );  

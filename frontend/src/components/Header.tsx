@@ -7,8 +7,9 @@ interface HeaderProps {
   selectedGenre: string;
   setSelectedGenre: (genre: string) => void; // if genre selected
   artistInput: string;
-  setArtistInput: (artist: string) => void; // 
+  setArtistInput: (artist: string) => void; //
   setIsReadyToPlay: (ready: boolean) => void; // if game is ready
+  setShowHelpModal: (visible: boolean) => void; 
 }
 
 export default function Header({
@@ -19,12 +20,13 @@ export default function Header({
   artistInput,
   setArtistInput,
   setIsReadyToPlay,
+  setShowHelpModal,
 }: HeaderProps) {
   const [genres, setGenres] = useState<string[]>([]); // genres from backend
   const [artistConfirmed, setArtistConfirmed] = useState<boolean>(false); //  artist input confirmed?
   const [showHint, setShowHint] = useState<boolean>(true); // toggle hint telling user to do enter to confirm
 
-  // get genres from backend 
+  // get genres from backend
   useEffect(() => {
     const fetchGenres = async () => {
       try {
@@ -40,10 +42,16 @@ export default function Header({
 
   // artist confirmation when Enter is pressed
   const handleArtistKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && artistInput.trim()) {
-      setArtistConfirmed(true); // mark artist as confirmed
-      setShowHint(false); // hide hint box 
-      setIsReadyToPlay(true); // allow gameplay
+    if (e.key === "Enter") {
+      if (artistInput.trim()) {
+        setArtistConfirmed(true); //
+        setShowHint(false); // get rid of hint
+        setIsReadyToPlay(true);
+      } else {
+        alert("Please enter a valid artist name.");
+        setArtistConfirmed(false);
+        setShowHint(true); //enter to confirm still
+      }
     }
   };
 
@@ -51,18 +59,23 @@ export default function Header({
   useEffect(() => {
     if (gameMode === "genre" && !selectedGenre) {
       setIsReadyToPlay(false); // disable play button and text is no genre selected
-    } else if (gameMode === "artist" && !artistConfirmed) {
+    } else if (
+      gameMode === "artist" &&
+      (!artistConfirmed || artistInput.trim() === "")
+    ) {
       setIsReadyToPlay(false); // same thing bu for artists
     } else {
       setIsReadyToPlay(true);
     }
-  }, [gameMode, selectedGenre, artistConfirmed, setIsReadyToPlay]);
+  }, [gameMode, selectedGenre, artistConfirmed, artistInput, setIsReadyToPlay]);
 
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-zinc-900 shadow-md">
       {/* Logo */}
       <div className="text-xl font-bold text-violet-500 flex items-center gap-2">
-        <span role="img" aria-label="music-note">🎵</span>
+        <span role="img" aria-label="music-note">
+          🎵
+        </span>
         <span>Tempo Run</span>
       </div>
 
@@ -79,7 +92,7 @@ export default function Header({
               setIsReadyToPlay(false); // prevent gameplay until a selection
               setSelectedGenre(""); // reset genre selection in between modes
               setArtistInput(""); // clear arists in between modes
-              setArtistConfirmed(false);  // artist input is unconfirmed
+              setArtistConfirmed(false); // artist input is unconfirmed
             }}
           >
             <option value="daily">Daily Challenge</option>
@@ -109,13 +122,13 @@ export default function Header({
 
         {/* Artist Input */}
         {gameMode === "artist" && (
-          <div className="relative  w-27">
+          <div className="relative w-27">
             <input
               type="text"
               placeholder="Type an artist here..."
-              className="bg-violet-500 text-white px-3 py-2 pr-28 rounded-lg focus:outline-none placeholder-gray-300 w-full 
-              whitespace-nowrap overflow-x-auto text-ellipsis"
-              style={{ direction: "ltr" }}
+              className={`bg-violet-500 text-white px-3 py-2 pr-28 rounded-lg focus:outline-none placeholder-gray-300 w-full ${
+                artistConfirmed ? "border-green-400" : "border-gray-400"
+              }`}
               value={artistInput}
               onChange={(e) => {
                 setArtistInput(e.target.value);
@@ -124,16 +137,19 @@ export default function Header({
               }}
               onKeyDown={handleArtistKeyPress}
             />
-            {/* Inline Hint */}
             {showHint && !artistConfirmed && (
               <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-sm">
                 Enter to confirm
               </span>
             )}
-            {/* Confirmation Feedback */}
             {artistConfirmed && (
               <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-400 text-sm">
-                ✅
+                ✅ Confirmed
+              </span>
+            )}
+            {!artistConfirmed && artistInput.trim() === "" && (
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-400 text-sm">
+                ❌ Invalid
               </span>
             )}
           </div>
@@ -143,7 +159,7 @@ export default function Header({
       {/* Help Button */}
       <button
         className="text-white bg-violet-500 px-3 py-1 rounded-full hover:bg-violet-700 transition duration-300"
-        onClick={() => alert("Help menu coming soon!")}
+        onClick={() => setShowHelpModal(true)}
       >
         ?
       </button>
