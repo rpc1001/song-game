@@ -10,12 +10,12 @@ app.use(cors());
 const PORT = process.env.PORT || 3000;
 
 const genrePlaylists = {
-  Pop: [1036183001, 2098157264], // pop essentials, pop global hits
-  Rap: [12547421383, 7662551722], // 2020s rap, 2010s rap
-  Rock: [1306931615], // rock essentials
+  "Pop": [1036183001, 2098157264], // pop essentials, pop global hits
+  "Rap": [12547421383, 7662551722], // 2020s rap, 2010s rap
+  "Rock": [1306931615], // rock essentials
   "R&B": [1314725125, 5411628342, 2021626162], // r&b essentials, 2010s r&b,  2000s r&b
-  Country: [1130102843, 1294431447], // country essentials, country top hits
-  Jazz: [1615514485], // jazz essentials
+  'Country': [1130102843, 1294431447], // country essentials, country top hits
+  "Jazz": [1615514485], // jazz essentials
   "Alternative & Indie": [668126235, 8716319082], // alternative essentials, indie rock essentials
   "K-Pop": [4096400722, 873660353], //top k pop, k-pop essentials
 };
@@ -34,6 +34,7 @@ app.get("/genres", (req, res) => {
 
 app.get("/artist", async (req, res) => {
   const { artist } = req.query;
+  console.log(req.query.artist)
 
   if (!artist) {
     return res.status(400).json({ error: "Artist name is required." });
@@ -41,7 +42,7 @@ app.get("/artist", async (req, res) => {
 
   try {
     const artistSearchResponse = await axios.get(
-      `https://api.deezer.com/search?q=${encodeURIComponent(artist)}`,
+      `https://api.deezer.com/search/artist?q=${encodeURIComponent(artist)}`,
     );
     const artists = artistSearchResponse.data?.data;
 
@@ -142,7 +143,7 @@ app.get("/genre", async (req, res) => {
 
 app.get("/daily-challenge", async (req, res) => {
   try {
-    const trackId = "545992732";
+    const trackId = "2614584412";
     const response = await axios.get(`https://api.deezer.com/track/${trackId}`);
     res.json({
       id: response.data.id,

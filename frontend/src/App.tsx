@@ -12,58 +12,92 @@ import HelpModal from "./components/HelpModal";
 export default function App() {
   const MAX_GUESSES = 5;
   const [song, setSong] = useState<any>(null); // holds song data
-  const [loading, setLoading] = useState<boolean>(true);
   const [snippetDuration, setSnippetDuration] = useState<number>(1); // first snippet duration (1 second), need to implement setduration
   const [guess, setGuess] = useState<string>(""); // current guess
   const [remainingGuesses, setRemainingGuesses] = useState<number>(MAX_GUESSES); // max attempts allowed
   const [isCorrect, setIsCorrect] = useState<boolean>(false); // correct guess?
   const [pastGuesses, setPastGuesses] = useState<string[]>([]); // holds all guesses
   const [currentSlot, setCurrentSlot] = useState<number>(0); // Current guess slot
-  const inputRef = useRef<HTMLInputElement>(null); // Ref for the active input box
-  const audioRef = useRef<HTMLAudioElement | null>(null); // reference to  audio element
+ 
   const [progress, setProgress] = useState<number>(0); // snippet progress percentage
   const [isPlaying, setIsPlaying] = useState<boolean>(false); // if snippet playing
+ 
   const [showEndGameModal, setShowEndGameModal] = useState<boolean>(false); // whether or not end game modal is visible
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false); // help modal or not
+  
   const [gameMode, setGameMode] = useState<"daily" | "artist" | "genre">("daily"); // current game mode sleected
   const [selectedGenre, setSelectedGenre] = useState<string>(""); // store genre selected
-  const [artistQuery, setArtistQuery] = useState<string>(""); // store artist
-  const [isReadyToPlay, setIsReadyToPlay] = useState<boolean>(false); // track if game can start or not
+  
+  const [isLoadingSong, setIsLoadingSong] = useState<boolean>(false); // track if game can start or not
+  
+  const [artistInput, setArtistInput] = useState<string>("");
 
-
+  const inputRef = useRef<HTMLInputElement>(null); // Ref for the active input box
+  const audioRef = useRef<HTMLAudioElement | null>(null); // reference to  audio element
   // fetch a random song from the backend
   const fetchSong = async () => {
     try {
-      if (gameMode === "genre" && !selectedGenre) return;
-
-
       let endpoint = "http://localhost:3000/daily-challenge";
   
       if (gameMode === "genre") {
+        if (!selectedGenre) return; 
         endpoint = `http://localhost:3000/genre?genre=${encodeURIComponent(selectedGenre)}`;
-        console.log("selected");
       } else if (gameMode === "artist") {
-        endpoint = `http://localhost:3000/artist?artist=${encodeURIComponent(artistQuery)}`;
+        if (!artistInput) return; 
+        endpoint = `http://localhost:3000/artist?artist=${(artistInput)}`;
       }
   
-      const response = await axios.get(endpoint);
-      console.log(response.data);
+      setIsLoadingSong(true);
+      const response = await axios.get(endpoint);      
       setSong(response.data);
-      setLoading(false);
+      setIsLoadingSong(false);
     } catch (error) {
       console.error("Error fetching song:", error.message);
-      setLoading(false);
+      setIsLoadingSong(false);
     }
   };
 
   useEffect(() => {
-    setLoading(true);
     fetchSong();
   }, [gameMode, selectedGenre]);
+
+  useEffect(() => {
+    if (!song) return;
+    resetGame();
+  }, [song]);
+
   
+  const handleSetGameMode = (mode: "daily" | "genre" | "artist") => {
+    setGameMode(mode);
+    setSelectedGenre("");
+    setArtistInput("");
+  };
+  
+  const handleGenreChange = (genre: string) => {
+    setSelectedGenre(genre);
+  };
+
+  const handleArtistInputChange = (artist: string) => {
+    setArtistInput(artist);
+  };
+  
+  const handleArtistConfirm = () => {
+    if (artistInput.trim().length === 0) {
+      alert("Please enter a valid artist name.");
+      return;
+    }
+    fetchSong();
+  };
+
+  const isReadyToPlay = !!song && !isLoadingSong && (
+    (gameMode === "daily") ||
+    (gameMode === "genre" && !!selectedGenre) ||
+    (gameMode === "artist")
+  );
 
   // play snippet when the button clicked
   const handlePlaySnippet = () => {
+    if(!song || isLoadingSong) return;
     if (audioRef.current) {
       // audio to start of snippet
       audioRef.current.currentTime = 0;
@@ -106,7 +140,11 @@ export default function App() {
   
 
   const cleanSongTitle = (title: string): string => {
-    return title.replace(/\(.*?\)|\[.*?\]/g, "").trim(); // Remove text in parentheses or brackets
+    return title
+    .normalize("NFD") 
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\(.*?\)|\[.*?\]/g, "")
+    .trim();
   };
 
   const handleGuess = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -147,7 +185,7 @@ export default function App() {
     if (inputRef.current) {
       inputRef.current.focus();
     }
-  }, [currentSlot, loading]); 
+  }, [currentSlot]); 
 
   // play the entire snippet with end game modal is shown
   useEffect(()=>{
@@ -174,28 +212,30 @@ export default function App() {
     setGuess("");
     setProgress(0);
     setIsPlaying(false);
-    setLoading(true);
-    fetchSong();
+    
+    if(audioRef.current){
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-800 text-white font-sans">
       {/* Header */}
-      <Header
+     <Header
       gameMode={gameMode}
-      setGameMode={setGameMode}
+      setGameMode={handleSetGameMode}
       selectedGenre={selectedGenre}
-      setSelectedGenre={setSelectedGenre}
-      artistInput={artistQuery}
-      setArtistInput={setArtistQuery} 
-      setIsReadyToPlay={setIsReadyToPlay}
+      onGenreChange={handleGenreChange}
+      artistInput={artistInput}
+      onArtistInputChange={handleArtistInputChange}
+      onArtistConfirm={handleArtistConfirm}
       setShowHelpModal={setShowHelpModal}
-      />
+    />
+
       {/* Main Content */}
       <div className="flex-grow flex flex-col items-center justify-center mt-20 px-4">
-        {loading ? (
-          <p>Loading -_-</p>
-        ) : song ? (
+        { song ? (
           <div className="text-center w-full max-w-md">
             <h1 className="text-3xl font-bold mb-6">Guess the Song</h1>
             <GuessSlots
@@ -212,7 +252,7 @@ export default function App() {
             <ProgressBar
               progress={progress}
               snippetDuration={snippetDuration}
-              maxDuration={16} // Example max duration
+              maxDuration={16}
             />
             <PlayButton
               isPlaying={isPlaying}
@@ -253,6 +293,8 @@ export default function App() {
                 resetGame();
               }}
               onPlayAgain={() => {
+                setShowEndGameModal(false);
+                fetchSong();
                 resetGame();
               }}
             />
@@ -260,12 +302,11 @@ export default function App() {
           </div>
           
         ) : (
-          <p>Failed to load song. Try refreshing :/</p>
+          <p className="text-lg">
+            {isLoadingSong ? "Loading your song..." : "Retrieving song..."}
+          </p>
         )}
       </div>
-          
-      
-
     </div>
   );  
 }
