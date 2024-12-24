@@ -53,11 +53,11 @@ export default function App() {
   const fetchSong = useCallback(async () => {
     setSong(null);
   
-    let endpoint = "http://localhost:3000/daily-challenge";
+    let endpoint = "api/daily-challenge";
     if (gameMode === "genre" && selectedGenre) {
-      endpoint = `http://localhost:3000/genre?genre=${encodeURIComponent(selectedGenre)}`;
+      endpoint = `api/genre?genre=${encodeURIComponent(selectedGenre)}`;
     } else if (gameMode === "artist" && artistInput) {
-      endpoint = `http://localhost:3000/artist?artist=${encodeURIComponent(artistInput)}`;
+      endpoint = `api/artist?artist=${encodeURIComponent(artistInput)}`;
     }
   
     try {
