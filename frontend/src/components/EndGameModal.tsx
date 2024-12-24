@@ -33,9 +33,13 @@ export default function EndGameModal({
 
   return (
     <Modal isVisible={isVisible} onClose={onClose} dismissible={true}>
-      <h2 className="text-2xl font-bold mb-4 text-green-400">
-        {isCorrect ? "You Guessed It!" : "Game Over"}
-      </h2>
+    <h2
+      className={`text-2xl font-bold mb-4 ${
+        isCorrect ? "text-green-400" : "text-red-400"
+      }`}
+    >
+      {isCorrect ? "You Guessed It!" : "Game Over"}
+    </h2>
       <p className="text-gray-300 mb-4">
         The song was <span className="text-white font-bold">{songTitle}</span> by{" "}
         <span className="text-white font-bold">{songArtist}</span>.
