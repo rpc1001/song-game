@@ -1,4 +1,4 @@
-import React from "react";
+import React, { RefObject } from "react";
 
 interface GuessSlotsProps {
   MAX_GUESSES: number;

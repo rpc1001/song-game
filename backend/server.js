@@ -67,16 +67,17 @@ app.get("/artist", async (req, res) => {
     const randomSong = songs[Math.floor(Math.random() * songs.length)];
     console.log(
       "Random Song Found:",
-      randomSong.title,
+      randomSong.title_short,
       "by",
       randomSong.artist.name,
     );
 
     return res.json({
-      title: randomSong.title,
+      title: randomSong.title_short,
       preview: randomSong.preview,
       artist: randomSong.artist.name,
       album: randomSong.album.title,
+      confirmedArtist: foundArtist.name, 
     });
   } catch (error) {
     console.error("Error fetching artist or songs:", error.message);
@@ -128,9 +129,8 @@ app.get("/genre", async (req, res) => {
     // select a track
     const randomTrack = newTracks[Math.floor(Math.random() * newTracks.length)];
     previousTracks.add(randomTrack.id);
-
     res.json({
-      title: randomTrack.title,
+      title: randomTrack.title_short,
       preview: randomTrack.preview,
       artist: randomTrack.artist.name,
       album: randomTrack.album.title,
@@ -143,7 +143,7 @@ app.get("/genre", async (req, res) => {
 
 app.get("/daily-challenge", async (req, res) => {
   try {
-    const trackId = "2614584412";
+    const trackId = "1372275262/";
     const response = await axios.get(`https://api.deezer.com/track/${trackId}`);
     res.json({
       id: response.data.id,
