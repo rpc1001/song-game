@@ -44,6 +44,7 @@ export default function App() {
   const [artistInput, setArtistInput] = useState<string>("");
 
   const [isLoadingSong, setIsLoadingSong] = useState<boolean>(false); // track if game can start or not
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
 
 
   const inputRef = useRef<HTMLInputElement>(null); // Ref for the active input box
@@ -117,6 +118,14 @@ export default function App() {
   useEffect(() => {
     if (song){
       resetGame();
+    }
+  }, [song]);
+
+  useEffect(() => {
+    if (song?.album?.cover_big) {
+      const img = new Image();
+      img.src = song.album.cover_big;
+      img.onload = () => setImageSrc(song.album.cover_big); // set the preloaded image source
     }
   }, [song]);
 
@@ -393,7 +402,7 @@ export default function App() {
               }}
             
               isCorrect={isCorrect}
-              song={song}
+              song={{ ...song, album: { ...song.album, cover_big: imageSrc || song.album.cover_big } }} 
               gameMode={gameMode}
               onSwitchToGenre={() => {
                 setGameMode("genre");

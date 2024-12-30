@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
-const stringSimilarity = require("string-similarity");
 
 
 
@@ -156,7 +155,7 @@ app.get("/genre", async (req, res) => {
 
 app.get("/daily-challenge", async (req, res) => {
   try {
-    const trackId = "1391465312";
+    const trackId = "2493888291";
     const response = await axios.get(`https://api.deezer.com/track/${trackId}`);
     res.json({
       id: response.data.id,
@@ -207,10 +206,10 @@ app.get("/validate-song-artist", async (req, res) => {
 
     const cleanedSong = song.toLowerCase().trim();
     const isMatch = results.some((track) => {
-      const cleanedTrackTitle = track.title.toLowerCase().trim();
+    const cleanedTrackTitle = track.title.toLowerCase().trim();
       return (
-        cleanedTrackTitle === cleanedSong ||
-        stringSimilarity.compareTwoStrings(cleanedTrackTitle, cleanedSong) > 0.85
+        track.artist.name === artist  &&
+        cleanedTrackTitle === cleanedSong
       );
     });
 
