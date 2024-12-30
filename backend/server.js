@@ -1,6 +1,9 @@
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
+const stringSimilarity = require("string-similarity");
+
+
 
 const app = express();
 const cors = require("cors");
@@ -76,7 +79,7 @@ app.get("/artist", async (req, res) => {
       title: randomSong.title_short,
       preview: randomSong.preview,
       artist: randomSong.artist.name,
-      album: randomSong.album.title,
+      album: randomSong.album,
       confirmedArtist: foundArtist.name, 
     });
   } catch (error) {
@@ -87,7 +90,6 @@ app.get("/artist", async (req, res) => {
 
 app.get("/genre", async (req, res) => {
   const { genre } = req.query;
-  console.log("Genre");
 
   if (!genre || !genrePlaylists[genre]) {
     return res.status(400).json({ error: "Invalid genre selected." });
@@ -133,7 +135,7 @@ app.get("/genre", async (req, res) => {
       title: randomTrack.title_short,
       preview: randomTrack.preview,
       artist: randomTrack.artist.name,
-      album: randomTrack.album.title,
+      album: randomTrack.album,
     });
   } catch (error) {
     console.error("Error fetching genre playlist tracks:", error.message);
@@ -143,13 +145,14 @@ app.get("/genre", async (req, res) => {
 
 app.get("/daily-challenge", async (req, res) => {
   try {
-    const trackId = "66677621";
+    const trackId = "1084418082";
     const response = await axios.get(`https://api.deezer.com/track/${trackId}`);
     res.json({
       id: response.data.id,
       title: response.data.title,
       artist: response.data.artist.name,
       preview: response.data.preview,
+      album: response.data.album,
     });
   } catch (error) {
     console.error("Error fetching daily challenge song:", error.message);
@@ -159,4 +162,53 @@ app.get("/daily-challenge", async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+app.get("/album-tracks", async (req, res) => {
+  const { albumTracklistUrl } = req.query;
+  try {
+    const response = await axios.get(albumTracklistUrl);
+    const tracks = response.data.data.map((track) => ({
+      title: track.title,
+      preview: track.preview,
+    }));
+    res.json(tracks);
+  } catch (error) {
+    console.error("Error fetching album tracks:", error.message);
+    res.status(500).json({ error: "Failed to fetch album tracks." });
+  }
+});
+
+app.get("/validate-song-artist", async (req, res) => {
+  const { artist, song } = req.query;
+
+  if (!artist || !song) {
+    return res.status(400).json({ error: "Artist and song name are required." });
+  }
+
+  try {
+    const query = `artist:"${artist}" track:"${song}"`;
+    const searchUrl = `https://api.deezer.com/search?q=${encodeURIComponent(query)}`;
+    const response = await axios.get(searchUrl);
+
+    const results = response.data?.data || [];
+
+    const cleanedSong = song.toLowerCase().trim();
+    const isMatch = results.some((track) => {
+      const cleanedTrackTitle = track.title.toLowerCase().trim();
+      return (
+        cleanedTrackTitle === cleanedSong ||
+        stringSimilarity.compareTwoStrings(cleanedTrackTitle, cleanedSong) > 0.85
+      );
+    });
+
+    if (isMatch) {
+      res.json({ match: true });
+    } else {
+      res.json({ match: false });
+    }
+  } catch (error) {
+    console.error("Error validating song-artist match:", error.message);
+    res.status(500).json({ error: "Failed to validate song-artist match." });
+  }
 });

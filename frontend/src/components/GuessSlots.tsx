@@ -10,8 +10,10 @@ interface GuessSlotsProps {
   isReadyToPlay: boolean;
   isCorrect: boolean;
   inputRef: RefObject<HTMLInputElement>;
+  titleMatches: boolean[];
+  artistMatches: boolean[];
+  albumMatches: boolean[];
 }
-
 export default function GuessSlots({
   MAX_GUESSES,
   currentSlot,
@@ -22,6 +24,9 @@ export default function GuessSlots({
   isReadyToPlay,
   isCorrect,
   inputRef,
+  artistMatches,
+  albumMatches,
+  titleMatches,
 }: GuessSlotsProps) {
   return (
     <div className="space-y-2 mb-6 w-full flex flex-col items-center">
@@ -32,10 +37,17 @@ export default function GuessSlots({
             index === currentSlot
               ? "border-2 border-violet-400 bg-transparent"
               : pastGuesses[index]
-                ? "bg-zinc-700 text-gray-300"
-                : "bg-zinc-600"
+              ? titleMatches[index]
+                ? "bg-green-400 text-black"
+                : albumMatches[index]
+                ? "bg-blue-400 text-black"
+                : artistMatches[index]
+                ? "bg-yellow-400 text-black" 
+                : "bg-zinc-700 text-gray-300"
+              : "bg-zinc-600"
           }`}
         >
+      
           {index === currentSlot ? (
             <input
               ref={index === currentSlot ? inputRef : null}

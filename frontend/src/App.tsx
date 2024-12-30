@@ -14,13 +14,20 @@ import HelpModal from "./components/HelpModal";
 export default function App() {
   const MAX_GUESSES = 5;
   const [song, setSong] = useState<Song | null>(null); // holds song data
+  const [albumTracks, setAlbumTracks] = useState<string[]>([]); // album tracks of song
+
+
   const [snippetDuration, setSnippetDuration] = useState<number>(1); // first snippet duration (1 second), need to implement setduration
   const [guess, setGuess] = useState<string>(""); // current guess
   const [remainingGuesses, setRemainingGuesses] = useState<number>(MAX_GUESSES); // max attempts allowed
   const [isCorrect, setIsCorrect] = useState<boolean>(false); // correct guess?
   const [pastGuesses, setPastGuesses] = useState<string[]>([]); // holds all guesses
-  const [currentSlot, setCurrentSlot] = useState<number>(0); // Current guess slot
- 
+  const [currentSlot, setCurrentSlot] = useState<number>(0); // current guess slot
+
+  const [artistMatches, setArtistMatches] = useState<boolean[]>(Array(MAX_GUESSES).fill(false));
+  const [albumMatches, setAlbumMatches] = useState<boolean[]>(Array(MAX_GUESSES).fill(false));
+  const [titleMatches, setTitleMatches] = useState<boolean[]>(Array(MAX_GUESSES).fill(false));
+
   const [progress, setProgress] = useState<number>(0); // snippet progress percentage
   const [isPlaying, setIsPlaying] = useState<boolean>(false); // if snippet playing
  
@@ -46,32 +53,50 @@ export default function App() {
     title: string;
     preview: string;
     artist: string;
-    album: string;
-    confirmedArtist?: string;
+    album: {
+      title: string;
+      tracklist: string;
+    };
+      confirmedArtist?: string;
   }
 
+  interface Track {
+    title: string;
+  }
+  
   const fetchSong = useCallback(async () => {
     setSong(null);
+    setAlbumTracks([]);
   
-    let endpoint = "api/daily-challenge";
+    let endpoint = "http://localhost:3000/daily-challenge";
     if (gameMode === "genre" && selectedGenre) {
-      endpoint = `api/genre?genre=${encodeURIComponent(selectedGenre)}`;
+      endpoint = `http://localhost:3000/genre?genre=${encodeURIComponent(selectedGenre)}`;
     } else if (gameMode === "artist" && artistInput) {
-      endpoint = `api/artist?artist=${encodeURIComponent(artistInput)}`;
+      endpoint = `http://localhost:3000/artist?artist=${encodeURIComponent(artistInput)}`;
     }
   
     try {
       setIsLoadingSong(true);
       const response = await axios.get(endpoint);
-      setSong(response.data);
+      const songData = response.data;
+      setSong(songData);
+      console.log(songData);
+      console.log(songData.album.tracklist);
+      if (songData.album?.tracklist) {
+        const tracklistResponse = await axios.get(
+          `http://localhost:3000/album-tracks?albumTracklistUrl=${encodeURIComponent(songData.album.tracklist)}`
+        );
+        const tracks = tracklistResponse.data.map((track: Track) =>
+          cleanSongTitle(track.title.toLowerCase())
+        );
+        setAlbumTracks(tracks);
+      }
     } catch (error) {
-      console.error("Error fetching song:", error);
+      console.error("Error fetching song or album tracks:", error);
     } finally {
       setIsLoadingSong(false);
     }
   }, [gameMode, selectedGenre, artistInput]);
-  
-
 
   useEffect(() => {
     if(gameMode === "daily"){
@@ -173,41 +198,87 @@ export default function App() {
     .replace(/\(.*?\)|\[.*?\]/g, "")
     .trim();
   };
-
-  const handleGuess = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if(e.key === "Enter"){
-      if (!song) return;
-      const cleanedTitle = cleanSongTitle(song.title.toLowerCase());
-      const cleanedGuess = cleanSongTitle(guess.toLowerCase());
-      const similarity = stringSimilarity.compareTwoStrings(cleanedTitle,cleanedGuess,
+  
+  const validateArtistMatch = async (artist: string, userGuess: string): Promise<boolean> => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/validate-song-artist?artist=${encodeURIComponent(artist)}&song=${encodeURIComponent(userGuess)}`
       );
-
-      setPastGuesses((prev) => [
-        ...prev.slice(0, MAX_GUESSES - 1),
-        guess.trim() ? guess : "Skipped Guess",
-      ]);          
-
-      // compare guess with the song title
-      if (similarity > 0.85) {
-        setIsCorrect(true); // correct guess
-        setShowEndGameModal(true);
-      } else {
-        setRemainingGuesses((prev) => {
-          if(prev - 1 <= 0){
-            setShowEndGameModal(true);
-          }
-          return prev -1;
-        }); // dec remaining guesses
-        setSnippetDuration((prev) => prev * 2); // double snippet duration
-      }
-
-      setGuess(""); // clears field after each guess
-      setProgress(0);
-      setIsPlaying(false); 
-      setCurrentSlot((prev) => prev + 1); // move to next slot
+  
+      return response.data.match;
+    } catch (error) {
+      console.error("Error validating artist match:", error);
+      return false;
     }
   };
-
+  const handleGuess = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && song) {
+      const cleanedGuess = cleanSongTitle(guess.toLowerCase());
+      const cleanedTitle = cleanSongTitle(song.title.toLowerCase());
+  
+      const isTitleCorrect =
+        stringSimilarity.compareTwoStrings(cleanedTitle, cleanedGuess) > 0.85;
+  
+      let isArtistCorrect = false;
+      let isAlbumCorrect = false;
+  
+      if (!isAlbumCorrect && !isTitleCorrect && guess.trim()) { // avoid query if album is right or title 
+        isArtistCorrect = await validateArtistMatch(song.artist, guess);
+      }
+      isAlbumCorrect = albumTracks.includes(cleanedGuess);
+  
+      // update past guesses
+      setPastGuesses((prev) => {
+        const updated = [...prev];
+        updated[currentSlot] = guess.trim() || "Skipped Guess";
+        return updated;
+      });
+  
+      // update match states
+      setTitleMatches((prev) => {
+        const updated = [...prev];
+        updated[currentSlot] = isTitleCorrect;
+        return updated;
+      });
+  
+      setArtistMatches((prev) => {
+        const updated = [...prev];
+        updated[currentSlot] = isArtistCorrect;
+        return updated;
+      });
+  
+      setAlbumMatches((prev) => {
+        const updated = [...prev];
+        updated[currentSlot] = isAlbumCorrect;
+        return updated;
+      });
+  
+      if (isTitleCorrect) {
+        setIsCorrect(true);
+        setTimeout(() => {
+          setShowEndGameModal(true);
+        }, 100); // show end game modal with delay
+      } else {
+        setRemainingGuesses((prev) => prev - 1);
+  
+        // end game if out of guesses
+        if (remainingGuesses - 1 <= 0) {
+          setTimeout(() => {
+            setShowEndGameModal(true);
+          }, 100); // show end game modal with delay
+        }
+  
+        setSnippetDuration((prev) => prev * 2);
+      }
+  
+      // move to the next guess slot
+      setGuess("");
+      setProgress(0);
+      setIsPlaying(false);
+      setCurrentSlot((prev) => prev + 1);
+    }
+  };
+  
   useEffect(() => { // set input to the current guess box
     if (inputRef.current) {
       inputRef.current.focus();
@@ -281,17 +352,20 @@ export default function App() {
             {gameMode === "genre" && selectedGenre && `Guess the ${selectedGenre} Song`}
             {gameMode === "artist" && artistInput  && `Guess the ${song?.confirmedArtist || artistInput.trim()} Song`}
           </h1>
-            <GuessSlots
-              MAX_GUESSES={MAX_GUESSES}
-              currentSlot={currentSlot}
-              pastGuesses={pastGuesses}
-              guess={guess}
-              setGuess={setGuess}
-              handleGuess={handleGuess}
-              isReadyToPlay={isReadyToPlay}
-              isCorrect={isCorrect}
-              inputRef={inputRef}
-            />
+          <GuessSlots
+            MAX_GUESSES={MAX_GUESSES}
+            currentSlot={currentSlot}
+            pastGuesses={pastGuesses}
+            guess={guess}
+            setGuess={setGuess}
+            handleGuess={handleGuess}
+            isReadyToPlay={isReadyToPlay}
+            isCorrect={isCorrect}
+            inputRef={inputRef}
+            titleMatches={titleMatches} 
+            artistMatches={artistMatches}
+            albumMatches={albumMatches}
+          />
             <ProgressBar
               progress={progress}
               snippetDuration={snippetDuration}
