@@ -13,8 +13,8 @@ const PORT = process.env.PORT || 3000;
 
 const genrePlaylists = {
   "Pop": [1036183001, 2098157264], // pop essentials, pop global hits
-  "Rap": [12547421383, 7662551722], // 2020s rap, 2010s rap
-  "Rock": [1306931615], // rock essentials
+  "Rap": [12547421383, 7662551722, 10517014662, 13241781803, 1996494362, 11940510061, 1677006641], // 2020s rap, 2010s rap, atl rap, 2024 rap , rap bangers, 23 rap, hip hop hits
+  "Rock": [13374370263], // rock essentials
   "R&B": [1314725125, 5411628342, 2021626162], // r&b essentials, 2010s r&b,  2000s r&b
   'Country': [1130102843, 1294431447], // country essentials, country top hits
   "Jazz": [1615514485], // jazz essentials
@@ -127,26 +127,38 @@ app.get("/genre", async (req, res) => {
       genreCache[genre] = [...new Set(allTracks)];
     }
     const cachedTrackIds = genreCache[genre];
-    const newTrackIds = cachedTrackIds.filter((id) => !previousTracks.has(id));
-    if (newTrackIds.length === 0) {
-      previousTracks.clear(); // reset if no new tracks available
-      return res.status(404).json({ error: "No new tracks available. Try again." });
+    for (let i = 0; i < 10; i++) { // retry up to 10 times
+      const newTrackIds = cachedTrackIds.filter((id) => !previousTracks.has(id));
+      if (newTrackIds.length === 0) {
+        previousTracks.clear(); // reset if no new tracks are available
+        return res.status(404).json({ error: "No new tracks available. Try again." });
+      }
+
+      // select a random track ID
+      const randomTrackId = newTrackIds[Math.floor(Math.random() * newTrackIds.length)];
+      previousTracks.add(randomTrackId); // mark as played
+
+      try {
+        const trackResponse = await axios.get(`https://api.deezer.com/track/${randomTrackId}`);
+        const track = trackResponse.data;
+
+        if (track.readable) {
+          return res.json({
+            title: track.title_short,
+            preview: track.preview,
+            artist: track.artist.name,
+            album: track.album,
+            contributors: track.contributors,
+          });
+        } else {
+          console.warn(`Track ${randomTrackId} is not readable. Retrying...`);
+        }
+      } catch (error) {
+        console.error(`Error fetching track ${randomTrackId}:`, error.message);
+      }
     }
-    const playlistIds = genrePlaylists[genre];
-
-    const randomTrackId = newTrackIds[Math.floor(Math.random() * newTrackIds.length)];
-    previousTracks.add(randomTrackId); // mark as played
-
-    const trackResponse = await axios.get(`https://api.deezer.com/track/${randomTrackId}`);
-    const track = trackResponse.data;
-
-    res.json({
-      title: track.title_short,
-      preview: track.preview,
-      artist: track.artist.name,
-      album: track.album,
-      contributors: track.contributors,
-    });
+    // if no readable track is found after retries
+    return res.status(404).json({ error: "No readable tracks found after retries." });
   } catch (error) {
     console.error("Error fetching genre playlist tracks:", error.message);
     res.status(500).json({ error: "Failed to fetch genre tracks." });
@@ -155,7 +167,7 @@ app.get("/genre", async (req, res) => {
 
 app.get("/daily-challenge", async (req, res) => {
   try {
-    const trackId = "2493888291";
+    const trackId = "500099612";
     const response = await axios.get(`https://api.deezer.com/track/${trackId}`);
     res.json({
       id: response.data.id,

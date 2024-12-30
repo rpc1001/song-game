@@ -77,11 +77,12 @@ export default function App() {
     } else if (gameMode === "artist" && artistInput) {
       endpoint = `http://localhost:3000/artist?artist=${encodeURIComponent(artistInput)}`;
     }
-  
+
     try {
       setIsLoadingSong(true);
       const response = await axios.get(endpoint);
       const songData = response.data;
+      console.log(songData);
       setSong(songData);
       if (songData.album?.tracklist) {
         const tracklistResponse = await axios.get(
@@ -202,9 +203,10 @@ export default function App() {
 
   const cleanSongTitle = (title: string): string => {
     return title
-    .normalize("NFD") 
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\(.*?\)|\[.*?\]/g, "")
+    .normalize("NFD") // turn text into base + diacratics
+    .replace(/[\u0300-\u036f]/g, "") // remove diactrics
+    .replace(/\(.*?\)|\[.*?\]/g, "") // remove text in brackets or parantheses
+    .replace(/[^\w\s]/g, "") // remove all punctuation
     .trim();
   };
   
@@ -339,7 +341,25 @@ export default function App() {
   const handleChangeArtist = () => {
     setShowArtistModal(true);
   };
-
+  
+  useEffect(() => {
+    // Ensure Media Session API is supported
+    if ('mediaSession' in navigator) {
+      console.log("DEBUG: Disabling Media Session global controls.");
+  
+      // remove media player meda data
+      navigator.mediaSession.metadata = null;
+  
+      // disable all actions by setting no-op handlers
+      navigator.mediaSession.setActionHandler('play', () => {});
+      navigator.mediaSession.setActionHandler('pause', () => {});
+      navigator.mediaSession.setActionHandler('seekbackward', () => {});
+      navigator.mediaSession.setActionHandler('seekforward', () => {});
+      navigator.mediaSession.setActionHandler('previoustrack', () => {});
+      navigator.mediaSession.setActionHandler('nexttrack', () => {});
+      navigator.mediaSession.setActionHandler('stop', () => {});
+    }
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-zinc-800 text-white font-sans">
@@ -390,7 +410,7 @@ export default function App() {
               Remaining Guesses: {remainingGuesses}
             </p>
   
-            <audio ref={audioRef} src={song.preview} />
+            <audio ref={audioRef} src={song.preview} controls = {false}/>
             <EndGameModal
               isVisible={showEndGameModal}
               onClose={() => {
