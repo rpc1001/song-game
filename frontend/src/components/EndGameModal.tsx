@@ -1,4 +1,5 @@
 import Modal from "./Modal";
+import NextSongButton from "./NextSongButton"; 
 
 interface EndGameModalProps {
   isVisible: boolean;
@@ -8,7 +9,7 @@ interface EndGameModalProps {
   gameMode: "daily" | "genre" | "artist";
   onSwitchToGenre: () => void;
   onSwitchToArtist: () => void;
-  onPlayAgain: () => void;
+  onNextSong: () => void;
   onChangeGenre?: () => void;
   onChangeArtist?: () => void;
 }
@@ -31,12 +32,10 @@ export default function EndGameModal({
   onClose,
   isCorrect,
   song,
-  gameMode,
   onSwitchToGenre,
   onSwitchToArtist,
-  onPlayAgain,
-  onChangeGenre,
-  onChangeArtist,
+  onNextSong,
+  gameMode,
 }: EndGameModalProps) {
   if (!isVisible) return null;
 
@@ -87,6 +86,7 @@ export default function EndGameModal({
       >
         {isCorrect ? "You Guessed It!" : "Game Over"}
       </h2>
+
       {/* Description */}
       <p className="text-gray-300 mb-4">{description}</p>
 
@@ -96,76 +96,36 @@ export default function EndGameModal({
         alt="Album Cover"
         className="rounded-lg shadow-lg mx-auto mb-4"
       />
-      {gameMode === "daily" && (
-        <>
-          <div className="flex justify-between gap-4 mb-4">
-            <button
-              className="flex-1 bg-violet-400 text-white px-4 py-2 rounded-lg hover:bg-violet-600 transition"
-              onClick={() => {
-                onSwitchToGenre();
-                onClose();
-              }}
-            >
-              Genres
-            </button>
-            <button
-              className="flex-1 bg-violet-400 text-white px-4 py-2 rounded-lg hover:bg-violet-600 transition"
-              onClick={() => {
-                onSwitchToArtist();
-                onClose();
-              }}
-            >
-              Artists
-            </button>
-          </div>
-        </>
+
+    {/* Next Song Button */}
+      {gameMode !== "daily" && (
+        <NextSongButton
+          onNextSong={onNextSong}
+          label={"Next Song"}
+        />
       )}
 
-      {gameMode === "genre" && (
-        <>
-          <button
-            className="bg-violet-400 text-white px-4 py-2 rounded-lg w-full hover:bg-violet-600 transition mb-4"
-            onClick={() => {
-              onPlayAgain();
-              onClose();
-            }}
-          >
-            Play Again
-          </button>
-          <button
-            className="bg-violet-500 text-white px-4 py-2 rounded-lg w-full hover:bg-violet-600 transition"
-            onClick={() => {
-              onChangeGenre?.();
-              onClose();
-            }}
-          >
-            Change Genre
-          </button>
-        </>
-      )}
-
-      {gameMode === "artist" && (
-        <>
-          <button
-            className="bg-violet-400 text-white px-4 py-2 rounded-lg w-full hover:bg-violet-600 transition mb-4"
-            onClick={() => {
-              onPlayAgain();
-              onClose();
-            }}
-          >
-            Play Again
-          </button>
-          <button
-            className="bg-violet-500 text-white px-4 py-2 rounded-lg w-full hover:bg-violet-600 transition"
-            onClick={() => {
-              onChangeArtist?.();
-              onClose();
-            }}
-          >
-            Change Artist
-          </button>
-        </>
-      )}
+      {/* Game Mode Selection Buttons */}
+      <div className="mt-6 space-y-4">
+        <button
+          className="bg-orange-400 text-white px-4 py-2 rounded-lg w-full hover:bg-organge-600 transition"
+          onClick={() => {
+            onSwitchToGenre();
+            onClose();
+          }}
+        >
+          Select Genre
+        </button>
+        <button
+          className="bg-yellow-400 text-white px-4 py-2 rounded-lg w-full hover:bg-yellow-600 transition"
+          onClick={() => {
+            onSwitchToArtist();
+            onClose();
+          }}
+        >
+          Select Artist
+        </button>
+      </div>
     </Modal>
   );
 }
