@@ -56,8 +56,10 @@ export default function App() {
     album: {
       title: string;
       tracklist: string;
+      cover_big: string;
     };
       confirmedArtist?: string;
+      contributors: { name: string; role: string }[];
   }
 
   interface Track {
@@ -80,8 +82,6 @@ export default function App() {
       const response = await axios.get(endpoint);
       const songData = response.data;
       setSong(songData);
-      console.log(songData);
-      console.log(songData.album.tracklist);
       if (songData.album?.tracklist) {
         const tracklistResponse = await axios.get(
           `http://localhost:3000/album-tracks?albumTracklistUrl=${encodeURIComponent(songData.album.tracklist)}`
@@ -393,8 +393,7 @@ export default function App() {
               }}
             
               isCorrect={isCorrect}
-              songTitle={song.title}
-              songArtist={song.artist}
+              song={song}
               gameMode={gameMode}
               onSwitchToGenre={() => {
                 setGameMode("genre");
