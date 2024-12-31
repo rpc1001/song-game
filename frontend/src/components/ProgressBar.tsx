@@ -16,7 +16,7 @@ export default function ProgressBar({
         style={{ width: `${(snippetDuration / maxDuration) * 100}%` }}
       >
         <div
-          className="h-full bg-violet-500 transition-all duration-150"
+          className="h-full bg-purple-500 transition-all duration-150"
           style={{ width: `${progress}%` }}
         ></div>
       </div>

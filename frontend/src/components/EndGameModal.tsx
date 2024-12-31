@@ -81,7 +81,7 @@ export default function EndGameModal({
     <Modal isVisible={isVisible} onClose={onClose} dismissible={true}>
       <h2
         className={`text-2xl font-bold mb-4 ${
-          isCorrect ? "text-green-400" : "text-red-400"
+          isCorrect ? "text-green-500" : "text-bright_pink_(crayola)-500"
         }`}
       >
         {isCorrect ? "You Guessed It!" : "Game Over"}
@@ -106,24 +106,25 @@ export default function EndGameModal({
       )}
 
       {/* Game Mode Selection Buttons */}
-      <div className="mt-6 space-y-4">
+      <div className="mt-4 space-y-4">
+
         <button
-          className="bg-orange-400 text-white px-4 py-2 rounded-lg w-full hover:bg-organge-600 transition"
-          onClick={() => {
-            onSwitchToGenre();
-            onClose();
-          }}
-        >
-          Select Genre
-        </button>
-        <button
-          className="bg-yellow-400 text-white px-4 py-2 rounded-lg w-full hover:bg-yellow-600 transition"
+          className="bg-mulberry-500 text-white  font-bold px-4 py-2 rounded-lg w-full hover:brightness-75 transition"
           onClick={() => {
             onSwitchToArtist();
             onClose();
           }}
         >
           Select Artist
+        </button>
+        <button
+          className="bg-atomic_tangerine-500 text-white font-bold  px-4 py-2 rounded-lg w-full hover:brightness-75 transition"
+          onClick={() => {
+            onSwitchToGenre();
+            onClose();
+          }}
+        >
+          Select Genre
         </button>
       </div>
     </Modal>

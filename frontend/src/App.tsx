@@ -15,7 +15,6 @@ import HelpModal from "./components/HelpModal";
 export default function App() {
   const MAX_GUESSES = 5;
   const [song, setSong] = useState<Song | null>(null); // holds song data
-  const [albumTracks, setAlbumTracks] = useState<string[]>([]); // album tracks of song
 
 
   const [snippetDuration, setSnippetDuration] = useState<number>(1); // first snippet duration (1 second), need to implement setduration
@@ -66,13 +65,8 @@ export default function App() {
       contributors: { name: string; role: string }[];
   }
 
-  interface Track {
-    title: string;
-  }
-  
   const fetchSong = useCallback(async () => {
     setSong(null);
-    setAlbumTracks([]);
   
     let endpoint = "http://localhost:3000/daily-challenge";
     if (gameMode === "genre" && selectedGenre) {
@@ -85,17 +79,7 @@ export default function App() {
       setIsLoadingSong(true);
       const response = await axios.get(endpoint);
       const songData = response.data;
-      console.log(songData);
       setSong(songData);
-      if (songData.album?.tracklist) {
-        const tracklistResponse = await axios.get(
-          `http://localhost:3000/album-tracks?albumTracklistUrl=${encodeURIComponent(songData.album.tracklist)}`
-        );
-        const tracks = tracklistResponse.data.map((track: Track) =>
-          cleanSongTitle(track.title.toLowerCase())
-        );
-        setAlbumTracks(tracks);
-      }
     } catch (error) {
       console.error("Error fetching song or album tracks:", error);
     } finally {
@@ -206,11 +190,11 @@ export default function App() {
 
   const cleanSongTitle = (title: string): string => {
     return title
-    .normalize("NFD") // turn text into base + diacratics
-    .replace(/[\u0300-\u036f]/g, "") // remove diactrics
-    .replace(/\(.*?\)|\[.*?\]/g, "") // remove text in brackets or parantheses
-    .replace(/[^\w\s]/g, "") // remove all punctuation
-    .trim();
+      .normalize("NFD") // turn text into base + diacratics
+      .replace(/[\u0300-\u036f]/g, "") // remove diactrics
+      .replace(/\(.*?\)|\[.*?\]/g, "") // remove text in brackets or parantheses
+      .replace(/[^\w\s]/g, "") // remove all punctuation
+      .trim();
   };
   
   const handleGuess = async (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -226,28 +210,32 @@ export default function App() {
         });
         setRemainingGuesses((prev) => prev - 1);
       } else {
-        const cleanedTitle = cleanSongTitle(song.title.toLowerCase());
+        const cleanedTitle = cleanSongTitle(song.title.toLowerCase()); // the actual answer 
   
-        let isTitleCorrect = false;
-        let isArtistCorrect = false;
-        const similarityScore = stringSimilarity.compareTwoStrings(cleanedTitle, cleanedGuess)
-        if (similarityScore > 0.85) {
+        let isTitleCorrect = false; // if their guess is the correct title
+        let isArtistCorrect = false; // if their guess is the correct artist, check it by searching their guess and comparing it to the artist
+        // will only give artist credit if the song that they guessed is 50% close to the one that shows up in deezers api search (fuzzy search)
+        let isAlbumCorrect = false;
+
+        const answerSimilarityScore = stringSimilarity.compareTwoStrings(cleanedTitle, cleanedGuess);
+        if (answerSimilarityScore > 0.85) {
           isTitleCorrect = true;
         } else {
-          console.log("entering")
           // perform backend search for validation
           const response = await axios.get(
-            `http://localhost:3000/validate-song?song=${encodeURIComponent(cleanedGuess)}`
+            `http://localhost:3000/validate-song?artist=${encodeURIComponent(song.artist)}&song=${encodeURIComponent(cleanedGuess)}`
           );      
-            console.log(cleanedTitle);
-            console.log(cleanSongTitle(response.data.title));
+          // similarity score of their guess and the song that shows up in search, to verify the artist/album
+          // (dont want someone to just put like the artists name and get a hint from that, need a somewhat valid song)
           if (response.data.match) {
-            const { title, artist } = response.data;
-            isTitleCorrect = cleanSongTitle(title) === cleanedTitle && (similarityScore > 0.5);
-            isArtistCorrect = artist === song.artist.toLowerCase().trim() && (similarityScore> 0.5) ;
+            const guessesSimilarityScore = stringSimilarity.compareTwoStrings(cleanSongTitle(response.data.title), cleanedGuess)
+            const { title, artist, album} = response.data;
+            isTitleCorrect = cleanSongTitle(title) === cleanedTitle && (answerSimilarityScore >= 0.5);
+            isArtistCorrect = artist === song.artist.toLowerCase().trim() && (guessesSimilarityScore> 0.5) ;
+            isAlbumCorrect = album === song.album.title.toLowerCase().trim() && (guessesSimilarityScore > 0.5);
           }
         }    
-        const isAlbumCorrect = albumTracks.includes(cleanedGuess);  
+        // const isAlbumCorrect = albumTracks.includes(cleanedGuess);  
         // update past guesses
         setPastGuesses((prev) => {
           const updated = [...prev];
@@ -361,9 +349,7 @@ export default function App() {
   
   useEffect(() => {
     // Ensure Media Session API is supported
-    if ('mediaSession' in navigator) {
-      console.log("DEBUG: Disabling Media Session global controls.");
-  
+    if ('mediaSession' in navigator) {  
       // remove media player meda data
       navigator.mediaSession.metadata = null;
   
@@ -379,7 +365,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-800 text-white font-sans">
+    <div className="flex flex-col min-h-screen bg-zinc-800 text-white">
       {/* Header */}
       <Header
         gameMode={gameMode}

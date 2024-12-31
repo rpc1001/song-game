@@ -28,6 +28,7 @@ export default function GuessSlots({
   albumMatches,
   titleMatches,
 }: GuessSlotsProps) {
+  const isGameEnded = isCorrect || currentSlot >= MAX_GUESSES;
   return (
     <div className="space-y-2 mb-6 w-full flex flex-col items-center">
       {Array.from({ length: MAX_GUESSES }, (_, index) => (
@@ -35,20 +36,22 @@ export default function GuessSlots({
           key={index}
           className={`h-12 flex items-center justify-center w-full rounded-lg text-center text-lg font-bold ${
             index === currentSlot
-              ? "border-2 border-violet-400 bg-transparent"
+              ? isGameEnded
+                ? "bg-zinc-600 text-gray-300"
+                : "border-2 border-purple-500 bg-transparent"
               : pastGuesses[index]
               ? titleMatches[index]
-                ? "bg-green-400 text-black"
+                ? "bg-green-500 text-white"
                 : albumMatches[index]
-                ? "bg-blue-400 text-black"
+                ? "bg-munsell_blue text-white"
                 : artistMatches[index]
-                ? "bg-yellow-400 text-black" 
+                ? "bg-mulberry-500 text-white" 
                 : "bg-zinc-700 text-gray-300"
               : "bg-zinc-600"
           }`}
         >
       
-          {index === currentSlot ? (
+          {index === currentSlot && !isGameEnded ? (
             <input
               ref={index === currentSlot ? inputRef : null}
               type="text"

@@ -16,7 +16,7 @@ export default function Header({
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-zinc-900 shadow-md">
       {/* Logo */}
-      <div className="text-xl font-bold text-violet-500 flex items-center gap-2">
+      <div className="text-xl font-bold text-purple-500 flex items-center gap-2">
         <span role="img" aria-label="music-note">🎵</span>
         <span>Tempo Run</span>
       </div>
@@ -26,7 +26,7 @@ export default function Header({
         <div className="flex items-center gap-2">
           <span className="text-white font-semibold">Mode:</span>
           <select
-            className="bg-violet-500 text-white px-3 py-2 rounded-lg focus:outline-none"
+            className="bg-purple-500 text-white px-3 py-2 rounded-lg focus:outline-none"
             value={gameMode}
             onChange={(e) => {
               const mode = e.target.value as "daily" | "genre" | "artist";
@@ -49,7 +49,7 @@ export default function Header({
 
       {/* Help Button */}
       <button
-        className="text-white bg-violet-500 px-3 py-1 rounded-full hover:bg-violet-700 transition duration-300"
+        className="text-white bg-purple-500 px-3 py-1 rounded-full hover:bg-purple-600 transition duration-300"
         onClick={() => setShowHelpModal(true)}
       >
         ?

@@ -30,7 +30,7 @@ export default function ArtistSelectModal({
 
   return (
     <Modal isVisible={isVisible} onClose={onClose} dismissible = {false}>
-      <h2 className="text-2xl font-bold text-violet-400 mb-4">Select an Artist</h2>
+      <h2 className="text-2xl font-bold text-white mb-4">Select an Artist</h2>
       <input
         type="text"
         placeholder="Type an artist name..."
@@ -46,10 +46,10 @@ export default function ArtistSelectModal({
       />
       <button
         onClick={handleConfirm}
-        className="bg-violet-500 text-white px-4 py-2 rounded-lg hover:bg-violet-600 transition"
+        className="bg-mulberry-500 text-white px-4 py-2 rounded-lg hover:brightness-500 transition"
       >
-        Confirm
-      </button>
+            <span className="font-bold text-sm whitespace-normal text-center">Confirm</span>
+            </button>
     </Modal>
   );
 }

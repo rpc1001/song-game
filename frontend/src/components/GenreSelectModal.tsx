@@ -36,21 +36,21 @@ export default function GenreSelectModal({
 
   return (
     <Modal isVisible={isVisible} onClose={onClose} dismissible = {false}>
-      <h2 className="text-2xl font-bold text-violet-400 mb-4">Select a Genre</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <h2 className="text-2xl font-bold text-white mb-4">Select a Genre</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-auto">
         {genres.map((genre) => (
-          <button
+            <button
             key={genre}
             onClick={() => {
-              onSelectGenre(genre);
-              onClose();
+                onSelectGenre(genre);
+                onClose();
             }}
-            className="bg-violet-500 hover:bg-violet-600 text-white py-2 px-2 rounded"
-          >
-            {genre}
-          </button>
+            className="bg-atomic_tangerine-500 hover:brightness-75 text-white py-2 px-4 rounded h-12 w-full flex items-center justify-center"
+            >
+            <span className="font-bold text-sm whitespace-normal text-center">{genre}</span>
+            </button>
         ))}
-      </div>
+        </div>
     </Modal>
   );
 }

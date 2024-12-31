@@ -10,7 +10,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isVisible, onClose }) => {
   return (
     <Modal isVisible={isVisible} onClose={onClose} dismissible={true}>
       {/* Help Content */}
-      <h2 className="text-2xl font-bold mb-4 text-violet-400">How to Play</h2>
+      <h2 className="text-2xl font-bold mb-4 text-purple-500">How to Play</h2>
       <p className="text-gray-300 text-sm leading-relaxed">
         - Press <b>Play</b> to listen to a snippet of a song. <br />
         - Type your guess in the input box and press <b>Enter</b>. <br />

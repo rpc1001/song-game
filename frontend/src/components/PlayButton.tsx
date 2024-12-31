@@ -14,12 +14,12 @@ export default function PlayButton({
       type="button"
       onClick={handlePlaySnippet}
       disabled={!isReadyToPlay}
-      className={`relative text-white px-6 py-2 rounded-lg transition-all duration-300 ${
+      className={`relative text-white font-bold px-6 py-2 rounded-lg transition-all duration-300 ${
         !isReadyToPlay
           ? "bg-gray-600 cursor-not-allowed opacity-50"
           : isPlaying
-          ? "bg-violet-600 cursor-default opacity-80 animate-pulse"
-          : "bg-violet-400 hover:bg-violet-600 hover:shadow-md"
+          ? "bg-purple-500 cursor-default animate-pulse"
+          : "bg-purple-500 hover:brightness-75 hover:shadow-md"
       }`}
       style={{ marginTop: "1rem", zIndex: 1 }}
     >

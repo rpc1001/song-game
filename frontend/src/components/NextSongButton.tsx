@@ -7,7 +7,7 @@ interface NextSongButtonProps {
     return (
       <button
         onClick={onNextSong}
-        className="bg-green-400 text-white px-4 py-2 rounded-lg w-full hover:bg-green-600 transition"
+        className="bg-purple-500 text-white  font-bold px-4 py-2 rounded-lg w-full hover:bg-purple-600 transition"
         style={{
             marginTop: "1rem",
             maxWidth: "300px",

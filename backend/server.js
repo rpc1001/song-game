@@ -18,8 +18,9 @@ const genrePlaylists = {
   "R&B": [1314725125, 5411628342, 2021626162], // r&b essentials, 2010s r&b,  2000s r&b
   'Country': [1130102843, 1294431447], // country essentials, country top hits
   "Jazz": [1615514485], // jazz essentials
-  "Alternative & Indie": [668126235, 8716319082], // alternative essentials, indie rock essentials
+  "Alt & Indie": [668126235, 8716319082], // alternative essentials, indie rock essentials
   "K-Pop": [4096400722, 873660353], //top k pop, k-pop essentials
+  "Musicals": [123],
 };
 
 const genreCache = {};
@@ -172,7 +173,7 @@ app.get("/genre", async (req, res) => {
 
 app.get("/daily-challenge", async (req, res) => {
   try {
-    const trackId = "116348664";
+    const trackId = "497467062";
     const response = await axios.get(`https://api.deezer.com/track/${trackId}`);
     res.json({
       id: response.data.id,
@@ -192,22 +193,8 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-app.get("/album-tracks", async (req, res) => {
-  const { albumTracklistUrl } = req.query;
-  try {
-    const response = await axios.get(albumTracklistUrl);
-    const tracks = response.data.data.map((track) => ({
-      title: track.title,
-      preview: track.preview,
-    }));
-    res.json(tracks);
-  } catch (error) {
-    console.error("Error fetching album tracks:", error.message);
-    res.status(500).json({ error: "Failed to fetch album tracks." });
-  }
-});
 app.get("/validate-song", async (req, res) => {
-  const { song } = req.query;
+  const { artist, song } = req.query;
   console.log(req.query);
 
   if (!song) {
@@ -215,9 +202,11 @@ app.get("/validate-song", async (req, res) => {
   }
 
   try {
-    const response = await axios.get(
-      `https://api.deezer.com/search/track?q=${encodeURIComponent(song)}`
-  );    
+    // const query = `artist:"${encodeURIComponent(artist)}" track:"${encodeURIComponent(song)}"`; other way to do it but more strict
+    const query = `${encodeURIComponent(song)} ${encodeURIComponent(artist)}`;
+    console.log(query);
+    const response = await axios.get(`https://api.deezer.com/search?q=${query}`);
+
   const results = response.data?.data || [];
 
     if (results.length === 0) {
@@ -227,11 +216,13 @@ app.get("/validate-song", async (req, res) => {
     console.log(firstMatch);
     const cleanedTrackTitle = firstMatch.title.toLowerCase().trim();
     const cleanedArtist = firstMatch.artist.name.toLowerCase().trim();
+    const cleanedAlbum = firstMatch.album.title.toLowerCase().trim();
 
     res.json({
       match: true,
       title: cleanedTrackTitle,
       artist: cleanedArtist,
+      album: cleanedAlbum,
     });
   } catch (error) {
     console.error("Error validating song:", error.message);
