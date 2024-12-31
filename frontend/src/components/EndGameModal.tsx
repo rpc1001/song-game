@@ -1,30 +1,19 @@
 import Modal from "./Modal";
 import NextSongButton from "./NextSongButton"; 
+import { songObject } from "../types/interfaces";
+
 
 interface EndGameModalProps {
   isVisible: boolean;
   onClose: () => void;
   isCorrect: boolean;
-  song: Song;
+  song: songObject;
   gameMode: "daily" | "genre" | "artist";
   onSwitchToGenre: () => void;
   onSwitchToArtist: () => void;
   onNextSong: () => void;
   onChangeGenre?: () => void;
   onChangeArtist?: () => void;
-}
-
-interface Song {
-  title: string;
-  preview: string;
-  artist: string;
-  album: {
-    title: string;
-    tracklist: string;
-    cover_big: string;
-  };
-  confirmedArtist?: string;
-  contributors: { name: string; role: string }[];
 }
 
 export default function EndGameModal({

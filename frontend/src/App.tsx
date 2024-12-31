@@ -2,6 +2,9 @@ import React, { useCallback, useState, useEffect, useRef } from "react";
 import axios from "axios";
 import stringSimilarity from "string-similarity";
 
+import { songObject } from "./types/interfaces";
+import { artistObject } from "./types/interfaces";
+
 import Header from "./components/Header";
 import GenreSelectModal from "./components/GenreSelectModal";
 import ArtistSelectModal from "./components/ArtistSelectModal";
@@ -12,9 +15,12 @@ import NextSongButton from "./components/NextSongButton";
 import EndGameModal from "./components/EndGameModal";
 import HelpModal from "./components/HelpModal";
 
+import StatsInterface from "./components/StatsInterface";
+import StatsManager from "./utils/StatsManager";
+
 export default function App() {
   const MAX_GUESSES = 5;
-  const [song, setSong] = useState<Song | null>(null); // holds song data
+  const [song, setSong] = useState<songObject | null>(null); // holds song data
 
 
   const [snippetDuration, setSnippetDuration] = useState<number>(1); // first snippet duration (1 second), need to implement setduration
@@ -43,7 +49,9 @@ export default function App() {
 
   const [gameMode, setGameMode] = useState<"daily" | "artist" | "genre">("daily"); // current game mode sleected
   const [selectedGenre, setSelectedGenre] = useState<string>(""); // store genre selected
+
   const [artistInput, setArtistInput] = useState<string>("");
+  const [confirmedArtist, setConfirmedArtist] = useState<artistObject | null>(null);
 
   const [isLoadingSong, setIsLoadingSong] = useState<boolean>(false); // track if game can start or not
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -52,18 +60,6 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null); // Ref for the active input box
   const audioRef = useRef<HTMLAudioElement | null>(null); // reference to  audio element
   
-  interface Song {
-    title: string;
-    preview: string;
-    artist: string;
-    album: {
-      title: string;
-      tracklist: string;
-      cover_big: string;
-    };
-      confirmedArtist?: string;
-      contributors: { name: string; role: string }[];
-  }
 
   const fetchSong = useCallback(async () => {
     setSong(null);
@@ -78,10 +74,16 @@ export default function App() {
     try {
       setIsLoadingSong(true);
       const response = await axios.get(endpoint);
-      const songData = response.data;
-      setSong(songData);
+
+      if (response.data.confirmedArtist && response.data.song) {
+        setSong(response.data.song);
+        setConfirmedArtist(response.data.confirmedArtist);
+      } else {
+        setSong(response.data);
+        setConfirmedArtist(null);
+      }
     } catch (error) {
-      console.error("Error fetching song or album tracks:", error);
+      console.error("Error fetching song", error);
     } finally {
       setIsLoadingSong(false);
     }
@@ -223,7 +225,7 @@ export default function App() {
         } else {
           // perform backend search for validation
           const response = await axios.get(
-            `http://localhost:3000/validate-song?artist=${encodeURIComponent(song.artist)}&song=${encodeURIComponent(cleanedGuess)}`
+            `http://localhost:3000/validate-song?artist=${encodeURIComponent(song.artist.name)}&song=${encodeURIComponent(cleanedGuess)}`
           );      
           // similarity score of their guess and the song that shows up in search, to verify the artist/album
           // (dont want someone to just put like the artists name and get a hint from that, need a somewhat valid song)
@@ -231,7 +233,7 @@ export default function App() {
             const guessesSimilarityScore = stringSimilarity.compareTwoStrings(cleanSongTitle(response.data.title), cleanedGuess)
             const { title, artist, album} = response.data;
             isTitleCorrect = cleanSongTitle(title) === cleanedTitle && (answerSimilarityScore >= 0.5);
-            isArtistCorrect = artist === song.artist.toLowerCase().trim() && (guessesSimilarityScore> 0.5) ;
+            isArtistCorrect = artist === song.artist.name.toLowerCase().trim() && (guessesSimilarityScore> 0.5) ;
             isAlbumCorrect = album === song.album.title.toLowerCase().trim() && (guessesSimilarityScore > 0.5);
           }
         }    
@@ -267,6 +269,35 @@ export default function App() {
           setTimeout(() => {
             setShowEndGameModal(true);
           }, 100); // show end game modal with delay
+
+          StatsManager.updateStats({
+            isCorrect: true,
+            guesses: currentSlot + 1,
+            song: {
+              id: song.id,
+              title: song.title,
+              artist: {
+                id: song.artist.id,
+                name: song.artist.name,
+                picture_big: song.artist.picture_big
+              } ,
+              album: {
+                id: song.album.id,
+                title: song.album.title,
+                cover_big: song.album.cover_big,
+                tracklist: song.album.tracklist,
+              },
+              preview: song.preview,
+              contributors: song.contributors.map(contributor => ({
+                name: contributor.name,
+                role: contributor.role,
+              })),
+            },
+            genre: selectedGenre || undefined,
+            artist: confirmedArtist || undefined,
+            mode: gameMode,
+          });
+
         } else {
           setRemainingGuesses((prev) => prev - 1);
     
@@ -274,6 +305,34 @@ export default function App() {
       }
       // end game if out of guesses
       if (remainingGuesses - 1 <= 0) {
+        StatsManager.updateStats({
+          isCorrect: true,
+          guesses: currentSlot + 1,
+          song: {
+            id: song.id,
+            title: song.title,
+            artist: {
+              id: song.artist.id,
+              name: song.artist.name,
+              picture_big: song.artist.picture_big
+            } ,
+            album: {
+              id: song.album.id,
+              title: song.album.title,
+              cover_big: song.album.cover_big,
+              tracklist: song.album.tracklist,
+            },
+            preview: song.preview,
+            contributors: song.contributors.map(contributor => ({
+              name: contributor.name,
+              role: contributor.role,
+            })),
+          },
+          genre: selectedGenre || undefined,
+          artist: confirmedArtist || undefined,
+          mode: gameMode,
+        });
+
         setTimeout(() => {
           setShowEndGameModal(true);
         }, 100); // show end game modal with delay
@@ -382,7 +441,7 @@ export default function App() {
           <h1 className="text-3xl font-bold mb-6">
             {gameMode === "daily" && "Guess the Song"}
             {gameMode === "genre" && selectedGenre && `Guess the ${selectedGenre} Song`}
-            {gameMode === "artist" && artistInput  && `Guess the ${song?.confirmedArtist || artistInput.trim()} Song`}
+            {gameMode === "artist" && artistInput  && `Guess the ${confirmedArtist?.name || artistInput.trim()} Song`}
           </h1>
           <GuessSlots
             MAX_GUESSES={MAX_GUESSES}
@@ -465,6 +524,7 @@ export default function App() {
         onClose={() => setShowArtistModal(false)}
         onConfirmArtist={handleConfirmArtist}
       />
+      <StatsInterface />
     </div>
   );  
 }

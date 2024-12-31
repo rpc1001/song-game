@@ -56,7 +56,6 @@ app.get("/artist", async (req, res) => {
       }
 
       const foundArtist = artists[0];
-      const confirmedArtist = foundArtist.name;
 
       // fetch the artist's top tracks
       const tracklistResponse = await axios.get(foundArtist.tracklist);
@@ -68,7 +67,7 @@ app.get("/artist", async (req, res) => {
 
       // cache the top tracks
       artistCache[artistName] = {
-        confirmedArtist,
+        confirmedArtist: foundArtist,
         tracks: songs,    
       };
     }
@@ -89,12 +88,19 @@ app.get("/artist", async (req, res) => {
     previousTracks.add(randomSong.id); // mark the track as played
 
     return res.json({
-      title: randomSong.title_short,
-      preview: randomSong.preview,
-      artist: randomSong.artist.name,
-      album: randomSong.album,
-      contributors: randomSong.contributors,
-      confirmedArtist,
+      confirmedArtist: {
+        id: confirmedArtist.id,
+        name: confirmedArtist.name,
+        picture_big: confirmedArtist.picture_big,
+      },
+      song: {
+        id: randomSong.id,
+        title: randomSong.title_short,
+        preview: randomSong.preview,
+        artist: randomSong.artist,
+        album: randomSong.album,
+        contributors: randomSong.contributors,
+      }
     });
   } catch (error) {
     console.error("Error fetching artist or songs:", error.message);
@@ -150,9 +156,10 @@ app.get("/genre", async (req, res) => {
 
         if (track.readable) {
           return res.json({
+            id: track.id,
             title: track.title_short,
             preview: track.preview,
-            artist: track.artist.name,
+            artist: track.artist,
             album: track.album,
             contributors: track.contributors,
           });
@@ -177,7 +184,7 @@ app.get("/daily-challenge", async (req, res) => {
     const response = await axios.get(`https://api.deezer.com/track/${trackId}`);
     res.json({
       id: response.data.id,
-      title: response.data.title,
+      title: response.data.title_short,
       artist: response.data.artist.name,
       preview: response.data.preview,
       album: response.data.album,
@@ -214,7 +221,7 @@ app.get("/validate-song", async (req, res) => {
     }
     const firstMatch = results[0];
     console.log(firstMatch);
-    const cleanedTrackTitle = firstMatch.title.toLowerCase().trim();
+    const cleanedTrackTitle = firstMatch.title_short.toLowerCase().trim();
     const cleanedArtist = firstMatch.artist.name.toLowerCase().trim();
     const cleanedAlbum = firstMatch.album.title.toLowerCase().trim();
 
