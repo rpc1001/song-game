@@ -1,6 +1,15 @@
 import { Settings, Share, BarChart, HelpCircle } from "lucide-react";
 
-export default function Header() {
+interface HeaderProps {
+  setShowStatsModal: (visible: boolean) => void;
+  setShowHelpModal: (visible: boolean) => void;
+}
+
+export default function Header( {
+  setShowHelpModal,
+  setShowStatsModal
+}: HeaderProps) {
+
   return (
     <header className="w-full bg-zinc-800">
       <div className="max-w-md mx-auto flex items-center justify-between  px-1 py-2">
@@ -27,13 +36,13 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <button
             className="text-gray-300 p-2 rounded-lg hover:text-white focus:outline-none"
-            onClick={() => {}}
+            onClick={() => setShowStatsModal(true)}
           >
             <BarChart size={24} strokeWidth={2} />
           </button>
           <button
             className="text-gray-300 p-2 rounded-lg hover:text-white focus:outline-none"
-            onClick={() => {}}
+            onClick={() => setShowHelpModal(true)}
           >
             <HelpCircle size={24} strokeWidth={2} />
           </button>

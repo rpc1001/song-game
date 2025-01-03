@@ -16,12 +16,11 @@ export default function ArtistSelectModal({
     const inputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
-      if (isVisible && inputRef.current) {
+        if (isVisible && inputRef.current) {
         inputRef.current.focus();
-      }
+        }
     }, [isVisible]);
 
-    
   const [artistName, setArtistName] = useState("");
 
   const handleConfirm = () => {

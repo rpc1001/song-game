@@ -205,7 +205,7 @@ export default function App() {
   const handleGuess = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && song) {
       const cleanedGuess = cleanSongTitle(guess.toLowerCase());
-      const isSkipped = !(guess.trim().replace(/[^\w\s]/g, "")
+      const isSkipped = !(guess.trim().replace(/[^\w\s]/g, "") 
     );
       if (isSkipped) {  
         setPastGuesses((prev) => {
@@ -268,10 +268,15 @@ export default function App() {
         });
     
         if (isTitleCorrect) {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+          });  
+          
           setIsCorrect(true);
           setTimeout(() => {
             setShowEndGameModal(true);
-          }, 100); // show end game modal with delay
+          }, 300); // show end game modal with delay
 
           StatsManager.updateStats({
             isCorrect: true,
@@ -335,10 +340,13 @@ export default function App() {
           artist: confirmedArtist || undefined,
           mode: gameMode,
         });
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"});
 
         setTimeout(() => {
           setShowEndGameModal(true);
-        }, 100); // show end game modal with delay
+        }, 300); // show end game modal with delay
       }
       setSnippetDuration((prev) => prev * 2);
       setGuess("");
@@ -431,9 +439,11 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-800 text-white">
+    <div className="flex flex-col min-h-screen bg-zinc-800 text-white px-4">
       {/* Header */}
       <Header
+        setShowStatsModal={setShowStatsModal}
+        setShowHelpModal={setShowHelpModal}
         // gameMode={gameMode}
         // setGameMode={handleGameModeChange}
         // setShowHelpModal={setShowHelpModal}
@@ -442,7 +452,7 @@ export default function App() {
       />
 
       {/* Main Content */}
-      <div className=" flex flex-col items-center justify-center  mt-3">
+      <div className=" flex flex-col items-center justify-center mt-3">
         { song ? (
           <div className="text-center w-full max-w-md">
           <h1 className="text-2xl font-bold mb-3">
@@ -469,6 +479,7 @@ export default function App() {
               snippetDuration={snippetDuration}
               maxDuration={16}
             />
+            
             {showNextSongButton ? (
               <NextSongButton
                 onNextSong={handleNextSong}
