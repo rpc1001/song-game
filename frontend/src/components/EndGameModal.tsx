@@ -14,7 +14,9 @@ interface EndGameModalProps {
   onNextSong: () => void;
   onChangeGenre?: () => void;
   onChangeArtist?: () => void;
+  onViewStats?: () => void;
 }
+
 
 export default function EndGameModal({
   isVisible,
@@ -25,6 +27,7 @@ export default function EndGameModal({
   onSwitchToArtist,
   onNextSong,
   gameMode,
+  onViewStats,
 }: EndGameModalProps) {
   if (!isVisible) return null;
 
@@ -52,9 +55,12 @@ export default function EndGameModal({
     .filter((contributor) => contributor.role.toLowerCase() === "featured")
     .map((contributor) => contributor.name);
 
+  const cleanTitle = (title: string): string => {
+    return title.replace(/\s*\([^)]*(feat|featured)[^)]*\)\s*/gi, "").trim();
+  };
   const description = (
     <>
-      The song was <strong style={{ color: '#f0f0f0' }}>{song.title}</strong> by{" "}
+      The song was <strong style={{ color: '#f0f0f0' }}>{cleanTitle(song.title)}</strong> by{" "}
       {formatContributors(mainContributors)}
       {featuredArtists.length > 0 && (
         <>
@@ -115,6 +121,17 @@ export default function EndGameModal({
         >
           Select Genre
         </button>
+        {onViewStats && (
+        <button
+          onClick={() => {
+            onViewStats();
+            onClose();
+          }}
+          className="bg-earth_yellow-500 text-white font-bold px-4 py-2 rounded-lg w-full hover:brightness-75 transition mt-4"
+        >
+          View Stats
+        </button>
+      )}
       </div>
     </Modal>
   );

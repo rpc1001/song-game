@@ -15,9 +15,9 @@ import NextSongButton from "./components/NextSongButton";
 import EndGameModal from "./components/EndGameModal";
 import HelpModal from "./components/HelpModal";
 
-import StatsInterface from "./components/StatsInterface";
 import StatsManager from "./utils/StatsManager";
-
+import StatsInterface
+ from "./components/StatsInterface";
 export default function App() {
   const MAX_GUESSES = 5;
   const [song, setSong] = useState<songObject | null>(null); // holds song data
@@ -39,7 +39,8 @@ export default function App() {
  
   const [showEndGameModal, setShowEndGameModal] = useState<boolean>(false); // whether or not end game modal is visible
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false); // help modal or not
-  
+  const [showStatsModal, setShowStatsModal] = useState(false);
+
 
   const [showGenreModal, setShowGenreModal] = useState(false);
   const [showArtistModal, setShowArtistModal] = useState(false);
@@ -306,8 +307,8 @@ export default function App() {
       // end game if out of guesses
       if (remainingGuesses - 1 <= 0) {
         StatsManager.updateStats({
-          isCorrect: true,
-          guesses: currentSlot + 1,
+          isCorrect: false,
+          guesses: 5,
           song: {
             id: song.id,
             title: song.title,
@@ -344,6 +345,10 @@ export default function App() {
       setCurrentSlot((prev) => prev + 1);
     }
   };
+  
+  // useEffect(() => {
+  //   StatsManager.clearStats();
+  // }, []);
   
   useEffect(() => { // set input to the current guess box
     if (inputRef.current) {
@@ -503,6 +508,11 @@ export default function App() {
               onNextSong={handleNextSong}
               onChangeGenre={handleChangeGenre}
               onChangeArtist={handleChangeArtist}
+              onViewStats={() => {
+                setShowStatsModal(true);
+                setShowEndGameModal(false);
+              }}
+
             />
             <HelpModal isVisible={showHelpModal} onClose={() => setShowHelpModal(false)} />
           </div>
@@ -524,7 +534,19 @@ export default function App() {
         onClose={() => setShowArtistModal(false)}
         onConfirmArtist={handleConfirmArtist}
       />
-      <StatsInterface />
+      <StatsInterface
+        isVisible={showStatsModal}
+        onClose={() =>{
+          setShowStatsModal(false);
+          setShowNextSongButton(true);
+        }}
+        onBackToEndModal={() => {
+          setShowStatsModal(false);
+          setShowEndGameModal(true);
+        }}
+        
+      />
+
     </div>
   );  
 }

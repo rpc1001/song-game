@@ -17,6 +17,11 @@ class StatsManager {
     return defaultStats;
   }
 
+  static clearStats(): void {
+    localStorage.removeItem(this.localStatsKey);
+    this.notifyStatsChange(this.initializeStats());
+  }
+  
   private static createAggregatedStats(): AggregatedStats {
     return {
       gamesPlayed: 0,
@@ -52,7 +57,7 @@ class StatsManager {
     isCorrect,
     guesses,
     song,
-    genre,
+    genre, // artist that they are playing (for artist mode)
     artist,
     mode,
   }: GameSession): void {
@@ -68,8 +73,8 @@ class StatsManager {
       if (!stats.genres[genre]) stats.genres[genre] = this.createAggregatedStats();
       this.updateAggregatedStats(stats.genres[genre], isCorrect, guesses);
     } else if (mode === "artist" && artist) {
-      if (!stats.artists[artist.id]) stats.artists[artist.id] = this.createAggregatedStats();
-      this.updateAggregatedStats(stats.artists[artist.id], isCorrect, guesses);
+      if (!stats.artists[artist.name]) stats.artists[artist.name] = this.createAggregatedStats();
+      this.updateAggregatedStats(stats.artists[artist.name], isCorrect, guesses);
     }
 
     // update song-specific stats

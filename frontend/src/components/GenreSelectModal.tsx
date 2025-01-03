@@ -37,7 +37,7 @@ export default function GenreSelectModal({
   return (
     <Modal isVisible={isVisible} onClose={onClose} dismissible = {false}>
       <h2 className="text-2xl font-bold text-white mb-4">Select a Genre</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-auto">
+      <div className="grid sm:grid-cols-3 gap-3 mt-auto">
         {genres.map((genre) => (
             <button
             key={genre}

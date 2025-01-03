@@ -12,15 +12,22 @@ app.use(cors());
 const PORT = process.env.PORT || 3000;
 
 const genrePlaylists = {
-  "Pop": [1036183001, 2098157264], // pop essentials, pop global hits
-  "Rap": [12547421383, 7662551722, 10517014662, 13241781803, 1996494362, 11940510061, 1677006641], // 2020s rap, 2010s rap, atl rap, 2024 rap , rap bangers, 23 rap, hip hop hits
-  "Rock": [13374370263], // rock essentials
+  "Pop": [13416990423, 2098157264], // pop, pop global hits
+  "Rap": [13417104363, 1996494362, 1677006641], //rap, rap bangers, hit hop hits
+  "Rock": [13374370263, 13374370263, 11335739484], // rock essentials, modern rock essentials,  rock classics 
   "R&B": [1314725125, 5411628342, 2021626162], // r&b essentials, 2010s r&b,  2000s r&b
   'Country': [1130102843, 1294431447], // country essentials, country top hits
-  "Jazz": [1615514485], // jazz essentials
-  "Alt & Indie": [668126235, 8716319082], // alternative essentials, indie rock essentials
+  "Alt/Indie": [668126235, 8716319082], // alternative essentials, indie rock essentials
   "K-Pop": [4096400722, 873660353], //top k pop, k-pop essentials
-  "Musicals": [123],
+  // "Electronic":[123],
+  // "Latin":[123],
+  // "Raggae":[123],
+  // "Afrobeats": [],
+  "Jazz": [1615514485], // jazz essentials
+  // "Classical": [],
+  // "Metal":[],
+  // "Musicals": [123],
+
 };
 
 const genreCache = {};
