@@ -17,7 +17,16 @@ export default {
         'bright_pink_(crayola)': { DEFAULT: '#ee5c6c', 100: '#3c060d', 200: '#780d19', 300: '#b41326', 400: '#e82139', 500: '#ee5c6c', 600: '#f17e8b', 700: '#f59ea8', 800: '#f8bec5', 900: '#fcdfe2' },
         'mulberry': { DEFAULT: '#ce4992', 100: '#2c0c1e', 200: '#59183b', 300: '#852359', 400: '#b12f77', 500: '#ce4992', 600: '#d86ea9', 700: '#e292be', 800: '#ecb6d4', 900: '#f5dbe9' },
        'munsell_blue' : '#3891A6',
-   }
+   },
+   animation: {
+    "audio-line": "audio-line 1s infinite ease-in-out",
+  },
+  keyframes: {
+    "audio-line": {
+      "0%, 100%": { transform: "scaleY(1)" },
+      "50%": { transform: "scaleY(2)" },
+    },
+  },
     },
   },
   plugins: [],

@@ -68,7 +68,6 @@ export default function App() {
     setSong(null);
   
     let endpoint = `${BACKEND_URL}/daily-challenge`;
-    console.log(endpoint);
     if (gameMode === "genre" && selectedGenre) {
       endpoint = `${BACKEND_URL}/genre?genre=${encodeURIComponent(selectedGenre)}`;
     } else if (gameMode === "artist" && artistInput) {
@@ -78,7 +77,6 @@ export default function App() {
     try {
       setIsLoadingSong(true);
       const response = await axios.get(endpoint);
-      console.log(response);
       if (response.data.confirmedArtist && response.data.song) {
         setSong(response.data.song);
         setConfirmedArtist(response.data.confirmedArtist);
@@ -123,16 +121,17 @@ export default function App() {
     }
   }, [song]);
 
-  const handleGameModeChange = (mode: "daily" | "genre" | "artist") => {
-    setGameMode(mode);
+  // const handleGameModeChange = (mode: "daily" | "genre" | "artist") => {
+  //   setGameMode(mode);
 
-    if (mode === "daily") {
-      setSelectedGenre("");
-      setArtistInput("");
-    }
+  //   if (mode === "daily") {
+  //     setSelectedGenre("");
+  //     setArtistInput("");
+  //   }
 
-    resetGame();
-  };
+  //   resetGame();
+  // };
+  
   const handleSelectGenre = (genre: string) => {
     setSelectedGenre(genre);
   };
@@ -435,19 +434,19 @@ export default function App() {
     <div className="flex flex-col min-h-screen bg-zinc-800 text-white">
       {/* Header */}
       <Header
-        gameMode={gameMode}
-        setGameMode={handleGameModeChange}
-        setShowHelpModal={setShowHelpModal}
-        onOpenGenreModal={() => setShowGenreModal(true)}
-        onOpenArtistModal={() => setShowArtistModal(true)}
+        // gameMode={gameMode}
+        // setGameMode={handleGameModeChange}
+        // setShowHelpModal={setShowHelpModal}
+        // onOpenGenreModal={() => setShowGenreModal(true)}
+        // onOpenArtistModal={() => setShowArtistModal(true)}
       />
 
       {/* Main Content */}
-      <div className="flex-grow flex flex-col items-center justify-center mt-20 px-4">
+      <div className=" flex flex-col items-center justify-center  mt-5 px-4">
         { song ? (
           <div className="text-center w-full max-w-md">
-          <h1 className="text-3xl font-bold mb-6">
-            {gameMode === "daily" && "Guess the Song"}
+          <h1 className="text-2xl font-bold mb-6">
+            {gameMode === "daily" && "Guess the Daily Song"}
             {gameMode === "genre" && selectedGenre && `Guess the ${selectedGenre} Song`}
             {gameMode === "artist" && artistInput  && `Guess the ${confirmedArtist?.name || artistInput.trim()} Song`}
           </h1>
@@ -476,11 +475,13 @@ export default function App() {
                 label={gameMode === "daily" ? "Next Game" : "Next Song"}
               />
             ) : (
+            <div className="flex justify-center items-center">
               <PlayButton
                 isPlaying={isPlaying}
-                isReadyToPlay={!!song && !isLoadingSong}
+                isReadyToPlay={isReadyToPlay}
                 handlePlaySnippet={handlePlaySnippet}
               />
+            </div>
             )}
 
 

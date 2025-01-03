@@ -43,6 +43,7 @@ const previousTracks = new Set(); //  already played tracks
 app.get("/artist", async (req, res) => {
   const { artist } = req.query;
 
+
   if (!artist) {
     return res.status(400).json({ error: "Artist name is required." });
   }
@@ -87,13 +88,14 @@ app.get("/artist", async (req, res) => {
 
     if (newTracks.length === 0) {
       previousTracks.clear(); // reset if no new tracks are available
+      console.log("no new tracks"); 
       return res.status(404).json({ error: "No new tracks available. Try again." });
     }
 
     // select a random track from the new tracks
     const randomSong = newTracks[Math.floor(Math.random() * newTracks.length)];
     previousTracks.add(randomSong.id); // mark the track as played
-
+    console.log("Song is ", randomSong.title_short, +"by ",randomSong.artist)
     return res.json({
       confirmedArtist: {
         id: confirmedArtist.id,
@@ -146,6 +148,7 @@ app.get("/genre", async (req, res) => {
       genreCache[genre] = [...new Set(allTracks)];
     }
     const cachedTrackIds = genreCache[genre];
+    
     for (let i = 0; i < 10; i++) { // retry up to 10 times
       const newTrackIds = cachedTrackIds.filter((id) => !previousTracks.has(id));
       if (newTrackIds.length === 0) {
@@ -209,7 +212,6 @@ app.listen(PORT, () => {
 
 app.get("/validate-song", async (req, res) => {
   const { artist, song } = req.query;
-  console.log(req.query);
 
   if (!song) {
     return res.status(400).json({ error: "Song name is required." });
@@ -218,7 +220,6 @@ app.get("/validate-song", async (req, res) => {
   try {
     // const query = `artist:"${encodeURIComponent(artist)}" track:"${encodeURIComponent(song)}"`; other way to do it but more strict
     const query = `${encodeURIComponent(song)} ${encodeURIComponent(artist)}`;
-    console.log(query);
     const response = await axios.get(`https://api.deezer.com/search?q=${query}`);
 
   const results = response.data?.data || [];
@@ -227,7 +228,6 @@ app.get("/validate-song", async (req, res) => {
       return res.json({ match: false });
     }
     const firstMatch = results[0];
-    console.log(firstMatch);
     const cleanedTrackTitle = firstMatch.title_short.toLowerCase().trim();
     const cleanedArtist = firstMatch.artist.name.toLowerCase().trim();
     const cleanedAlbum = firstMatch.album.title.toLowerCase().trim();

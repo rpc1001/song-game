@@ -1,59 +1,47 @@
-interface HeaderProps {
-  gameMode: string;
-  setGameMode: (mode: "daily" | "genre" | "artist") => void;
-  setShowHelpModal: (visible: boolean) => void;
-  onOpenGenreModal: () => void; 
-  onOpenArtistModal: () => void;
-}
+import { Settings, Share, BarChart, HelpCircle } from "lucide-react";
 
-export default function Header({
-  gameMode,
-  setGameMode,
-  setShowHelpModal,
-  onOpenGenreModal,
-  onOpenArtistModal,
-}: HeaderProps) {
+export default function Header() {
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-zinc-900 shadow-md">
-      {/* Logo */}
-      <div className="text-xl font-bold text-purple-500 flex items-center gap-2">
-        <span role="img" aria-label="music-note">🎵</span>
-        <span>Tempo Run</span>
-      </div>
-
-      {/* Game Mode Controls */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-white font-semibold">Mode:</span>
-          <select
-            className="bg-purple-500 text-white px-3 py-2 rounded-lg focus:outline-none"
-            value={gameMode}
-            onChange={(e) => {
-              const mode = e.target.value as "daily" | "genre" | "artist";
-              setGameMode(mode);
-
-              // open the relevant modal for genre/artist
-              if (mode === "genre") {
-                onOpenGenreModal();
-              } else if (mode === "artist") {
-                onOpenArtistModal();
-              }
-            }}
+    <header className="w-full bg-zinc-800">
+      <div className="max-w-md mx-auto flex items-center justify-between  px-1 py-2">
+        {/* Left Section */}
+        <div className="flex items-center gap-4">
+          <button
+            className="text-gray-300 p-2 rounded-lg hover:text-white focus:outline-none"
+            onClick={() => {}}
           >
-            <option value="daily">Daily Challenge</option>
-            <option value="genre">Genres</option>
-            <option value="artist">Artists</option>
-          </select>
+            <Settings size={24} strokeWidth={2} />
+          </button>
+          <button
+            className="text-gray-300 p-2 rounded-lg hover:text-white focus:outline-none"
+            onClick={() => {}}
+          >
+            <Share size={24} strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Center Title */}
+        <h1 className="text-purple-500 text-3xl font-bold">Muser</h1>
+
+        {/* Right Section */}
+        <div className="flex items-center gap-4">
+          <button
+            className="text-gray-300 p-2 rounded-lg hover:text-white focus:outline-none"
+            onClick={() => {}}
+          >
+            <BarChart size={24} strokeWidth={2} />
+          </button>
+          <button
+            className="text-gray-300 p-2 rounded-lg hover:text-white focus:outline-none"
+            onClick={() => {}}
+          >
+            <HelpCircle size={24} strokeWidth={2} />
+          </button>
         </div>
       </div>
 
-      {/* Help Button */}
-      <button
-        className="text-white bg-purple-500 px-3 py-1 rounded-full hover:bg-purple-600 transition duration-300"
-        onClick={() => setShowHelpModal(true)}
-      >
-        ?
-      </button>
+      {/* Divider Line */}
+      <div className="border-b border-gray-700 max-w-md mx-auto"></div>
     </header>
   );
 }
