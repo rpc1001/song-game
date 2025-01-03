@@ -16,8 +16,10 @@ import EndGameModal from "./components/EndGameModal";
 import HelpModal from "./components/HelpModal";
 
 import StatsManager from "./utils/StatsManager";
-import StatsInterface
- from "./components/StatsInterface";
+import StatsInterface from "./components/StatsInterface";
+
+const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
+
 export default function App() {
   const MAX_GUESSES = 5;
   const [song, setSong] = useState<songObject | null>(null); // holds song data
@@ -65,17 +67,18 @@ export default function App() {
   const fetchSong = useCallback(async () => {
     setSong(null);
   
-    let endpoint = "http://localhost:3000/daily-challenge";
+    let endpoint = `${BACKEND_URL}/daily-challenge`;
+    console.log(endpoint);
     if (gameMode === "genre" && selectedGenre) {
-      endpoint = `http://localhost:3000/genre?genre=${encodeURIComponent(selectedGenre)}`;
+      endpoint = `${BACKEND_URL}/genre?genre=${encodeURIComponent(selectedGenre)}`;
     } else if (gameMode === "artist" && artistInput) {
-      endpoint = `http://localhost:3000/artist?artist=${encodeURIComponent(artistInput)}`;
+      endpoint = `${BACKEND_URL}/artist?artist=${encodeURIComponent(artistInput)}`;
     }
 
     try {
       setIsLoadingSong(true);
       const response = await axios.get(endpoint);
-
+      console.log(response);
       if (response.data.confirmedArtist && response.data.song) {
         setSong(response.data.song);
         setConfirmedArtist(response.data.confirmedArtist);
@@ -226,7 +229,7 @@ export default function App() {
         } else {
           // perform backend search for validation
           const response = await axios.get(
-            `http://localhost:3000/validate-song?artist=${encodeURIComponent(song.artist.name)}&song=${encodeURIComponent(cleanedGuess)}`
+            `${BACKEND_URL}/validate-song?artist=${encodeURIComponent(song.artist.name)}&song=${encodeURIComponent(cleanedGuess)}`
           );      
           // similarity score of their guess and the song that shows up in search, to verify the artist/album
           // (dont want someone to just put like the artists name and get a hint from that, need a somewhat valid song)

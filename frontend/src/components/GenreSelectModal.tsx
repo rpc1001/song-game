@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Modal from "./Modal";
 
+const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL
+
+
 interface GenreSelectModalProps {
   isVisible: boolean;
   onClose: () => void;
@@ -20,7 +23,7 @@ export default function GenreSelectModal({
       // fetch genres only when modal opens
       const fetchGenres = async () => {
         try {
-          const response = await axios.get("http://localhost:3000/genres");
+          const response = await axios.get(`${BACKEND_URL}/genres`);
           setGenres(response.data.genres || []);
         } catch (error) {
           console.error("Error fetching genres:", error);
