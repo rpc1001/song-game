@@ -21,6 +21,9 @@ import StatsInterface from "./components/StatsInterface";
 const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
 export default function App() {
+  const topRef = useRef<HTMLDivElement | null>(null);
+
+
   const MAX_GUESSES = 5;
   const [song, setSong] = useState<songObject | null>(null); // holds song data
 
@@ -41,7 +44,9 @@ export default function App() {
  
   const [showEndGameModal, setShowEndGameModal] = useState<boolean>(false); // whether or not end game modal is visible
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false); // help modal or not
+
   const [showStatsModal, setShowStatsModal] = useState(false);
+  const [statsModalContext, setStatsModalContext] = useState<"header" | "endGame">("header");
 
 
   const [showGenreModal, setShowGenreModal] = useState(false);
@@ -63,6 +68,13 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null); // Ref for the active input box
   const audioRef = useRef<HTMLAudioElement | null>(null); // reference to  audio element
   
+
+  const scrollToTop = () => {
+    if (topRef.current) {
+      topRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
 
   const fetchSong = useCallback(async () => {
     setSong(null);
@@ -268,10 +280,7 @@ export default function App() {
         });
     
         if (isTitleCorrect) {
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-          });  
+          scrollToTop();
           
           setIsCorrect(true);
           setTimeout(() => {
@@ -340,9 +349,8 @@ export default function App() {
           artist: confirmedArtist || undefined,
           mode: gameMode,
         });
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth"});
+
+        scrollToTop();
 
         setTimeout(() => {
           setShowEndGameModal(true);
@@ -439,11 +447,12 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-800 text-white px-4">
+    <div ref={topRef} className="flex flex-col min-h-screen bg-zinc-800 text-white px-4 ">
       {/* Header */}
       <Header
         setShowStatsModal={setShowStatsModal}
         setShowHelpModal={setShowHelpModal}
+        setStatsModalContext={setStatsModalContext} 
         // gameMode={gameMode}
         // setGameMode={handleGameModeChange}
         // setShowHelpModal={setShowHelpModal}
@@ -524,6 +533,7 @@ export default function App() {
               onChangeGenre={handleChangeGenre}
               onChangeArtist={handleChangeArtist}
               onViewStats={() => {
+                setStatsModalContext("endGame");
                 setShowStatsModal(true);
                 setShowEndGameModal(false);
               }}
@@ -551,17 +561,12 @@ export default function App() {
       />
       <StatsInterface
         isVisible={showStatsModal}
-        onClose={() =>{
-          setShowStatsModal(false);
-          setShowNextSongButton(true);
-        }}
-        onBackToEndModal={() => {
+        onClose={() => setShowStatsModal(false)}
+        onBackToEndModal={statsModalContext === "endGame" ? () => {
           setShowStatsModal(false);
           setShowEndGameModal(true);
-        }}
-        
+        } : undefined}
       />
-
     </div>
   );  
 }

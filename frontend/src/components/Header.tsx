@@ -3,11 +3,13 @@ import { Settings, Share, BarChart, HelpCircle } from "lucide-react";
 interface HeaderProps {
   setShowStatsModal: (visible: boolean) => void;
   setShowHelpModal: (visible: boolean) => void;
+  setStatsModalContext: (context: "header" | "endGame") => void;
 }
 
 export default function Header( {
   setShowHelpModal,
-  setShowStatsModal
+  setShowStatsModal,
+  setStatsModalContext,
 }: HeaderProps) {
 
   return (
@@ -36,7 +38,11 @@ export default function Header( {
         <div className="flex items-center gap-4">
           <button
             className="text-gray-300 p-2 rounded-lg hover:text-white focus:outline-none"
-            onClick={() => setShowStatsModal(true)}
+            onClick={() => {
+              setStatsModalContext("header");
+              setShowStatsModal(true);
+            }}
+          
           >
             <BarChart size={24} strokeWidth={2} />
           </button>
