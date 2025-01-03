@@ -30,7 +30,7 @@ export default function GuessSlots({
 }: GuessSlotsProps) {
   const isGameEnded = isCorrect || currentSlot >= MAX_GUESSES;
   return (
-    <div className="space-y-2 mb-6 w-full flex flex-col items-center">
+    <div className="space-y-2 mb-3 w-full flex flex-col items-center">
       {Array.from({ length: MAX_GUESSES }, (_, index) => (
         <div
           key={index}

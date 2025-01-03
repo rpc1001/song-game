@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Modal from "./Modal";
 
 interface ArtistSelectModalProps {
@@ -12,6 +12,16 @@ export default function ArtistSelectModal({
   onClose,
   onConfirmArtist,
 }: ArtistSelectModalProps) {
+
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+      if (isVisible && inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [isVisible]);
+
+    
   const [artistName, setArtistName] = useState("");
 
   const handleConfirm = () => {
@@ -32,9 +42,10 @@ export default function ArtistSelectModal({
     <Modal isVisible={isVisible} onClose={onClose} dismissible = {false}>
       <h2 className="text-2xl font-bold text-white mb-4">Select an Artist</h2>
       <input
+        ref={inputRef} 
         type="text"
         placeholder="Type an artist name..."
-        className="bg-zinc-700 text-white px-3 py-2 rounded-lg w-full mb-4"
+        className="bg-zinc-700  focus:outline-none text-white px-3 py-2 rounded-lg w-full mb-4"
         value={artistName}
         onChange={(e) => setArtistName(e.target.value)}
         onKeyDown={(e) => {

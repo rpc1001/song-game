@@ -131,7 +131,7 @@ export default function App() {
 
   //   resetGame();
   // };
-  
+
   const handleSelectGenre = (genre: string) => {
     setSelectedGenre(genre);
   };
@@ -229,7 +229,7 @@ export default function App() {
           // perform backend search for validation
           const response = await axios.get(
             `${BACKEND_URL}/validate-song?artist=${encodeURIComponent(song.artist.name)}&song=${encodeURIComponent(cleanedGuess)}`
-          );      
+          );     
           // similarity score of their guess and the song that shows up in search, to verify the artist/album
           // (dont want someone to just put like the artists name and get a hint from that, need a somewhat valid song)
           if (response.data.match) {
@@ -353,7 +353,7 @@ export default function App() {
   // }, []);
   
   useEffect(() => { // set input to the current guess box
-    if (inputRef.current) {
+    if (inputRef.current && !showArtistModal && !showGenreModal) {
       inputRef.current.focus();
     }
   }, [currentSlot]); 
@@ -442,10 +442,10 @@ export default function App() {
       />
 
       {/* Main Content */}
-      <div className=" flex flex-col items-center justify-center  mt-5 px-4">
+      <div className=" flex flex-col items-center justify-center  mt-3">
         { song ? (
           <div className="text-center w-full max-w-md">
-          <h1 className="text-2xl font-bold mb-6">
+          <h1 className="text-2xl font-bold mb-3">
             {gameMode === "daily" && "Guess the Daily Song"}
             {gameMode === "genre" && selectedGenre && `Guess the ${selectedGenre} Song`}
             {gameMode === "artist" && artistInput  && `Guess the ${confirmedArtist?.name || artistInput.trim()} Song`}

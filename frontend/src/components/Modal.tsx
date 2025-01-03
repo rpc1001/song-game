@@ -21,7 +21,8 @@ export default function Modal({ isVisible, onClose, children, dismissible = true
         className="bg-zinc-800 p-6 rounded-lg shadow-lg w-80 text-center relative"
         onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
         style={{
-          marginTop: '-5.2rem', // align modals with the bottom of the header
+          top: '3.6rem', // align modals with the bottom of the header
+          position: 'absolute',
         }}
       >
         {/* Close Button */}

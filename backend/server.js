@@ -195,7 +195,7 @@ app.get("/daily-challenge", async (req, res) => {
     res.json({
       id: response.data.id,
       title: response.data.title_short,
-      artist: response.data.artist.name,
+      artist: response.data.artist,
       preview: response.data.preview,
       album: response.data.album,
       contributors: response.data.contributors,
