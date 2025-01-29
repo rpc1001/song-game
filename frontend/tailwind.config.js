@@ -20,11 +20,17 @@ export default {
    },
    animation: {
     "audio-line": "audio-line 1s infinite ease-in-out",
+    slideInUp: 'slideInUp 0.3s ease-out forwards',
+
   },
   keyframes: {
     "audio-line": {
       "0%, 100%": { transform: "scaleY(1)" },
       "50%": { transform: "scaleY(2)" },
+    },
+    slideInUp: {
+      "0%": { transform: "translateY(100%)", opacity: "0" },
+      "100%": { transform: "translateY(0)", opacity: "1" },
     },
   },
     },

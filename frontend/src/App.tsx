@@ -14,10 +14,11 @@ import PlayButton from "./components/PlayButton";
 import NextSongButton from "./components/NextSongButton";
 import EndGameModal from "./components/EndGameModal";
 import HelpModal from "./components/HelpModal";
+import OnboardingModal from "./components/OnboardingModal";
+import SettingsModal from "./components/SettingsModal";
 
 import StatsManager from "./utils/StatsManager";
 import StatsInterface from "./components/StatsInterface";
-
 const BACKEND_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
 export default function App() {
@@ -52,6 +53,9 @@ export default function App() {
   const [showGenreModal, setShowGenreModal] = useState(false);
   const [showArtistModal, setShowArtistModal] = useState(false);
 
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showNextSongButton, setShowNextSongButton] = useState(false); // Controls which button to show
 
 
@@ -67,7 +71,6 @@ export default function App() {
 
   const inputRef = useRef<HTMLInputElement>(null); // Ref for the active input box
   const audioRef = useRef<HTMLAudioElement | null>(null); // reference to  audio element
-  
 
   const scrollToTop = () => {
     if (topRef.current) {
@@ -133,6 +136,19 @@ export default function App() {
     }
   }, [song]);
 
+  useEffect(() => {
+    const hasSeenOnboarding = sessionStorage.getItem("hasSeenOnboarding");
+    
+    if (!hasSeenOnboarding) {
+      const timeoutId = setTimeout(() => {
+        setShowOnboardingModal(true);
+        sessionStorage.setItem("hasSeenOnboarding", "true");
+      }, 500);
+        return () => clearTimeout(timeoutId);
+    }
+  }, []);
+
+  
   // const handleGameModeChange = (mode: "daily" | "genre" | "artist") => {
   //   setGameMode(mode);
 
@@ -164,11 +180,13 @@ export default function App() {
     if (audioRef.current) {
       // audio to start of snippet
       audioRef.current.currentTime = 0;
+      audioRef.current.volume = 0.70;
+
       audioRef.current.play()
         .then(()=>{
           setIsPlaying(true);
           setProgress(0);
-      
+
           const interval = 50; // update progress every 50ms
           const totalSnippetTime = snippetDuration; // current snippet duration in seconds
           
@@ -189,7 +207,9 @@ export default function App() {
               }
             }
           }, interval);
-      
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
           // cleanup audio 
           if(audioRef.current){
             audioRef.current.onended = () => {
@@ -453,15 +473,11 @@ export default function App() {
         setShowStatsModal={setShowStatsModal}
         setShowHelpModal={setShowHelpModal}
         setStatsModalContext={setStatsModalContext} 
-        // gameMode={gameMode}
-        // setGameMode={handleGameModeChange}
-        // setShowHelpModal={setShowHelpModal}
-        // onOpenGenreModal={() => setShowGenreModal(true)}
-        // onOpenArtistModal={() => setShowArtistModal(true)}
+        setShowSettingsModal={setShowSettingsModal}
       />
 
       {/* Main Content */}
-      <div className=" flex flex-col items-center justify-center mt-3">
+      <div className=" flex  overflow flex-col items-center justify-center mt-3">
         { song ? (
           <div className="text-center w-full max-w-md">
           <h1 className="text-2xl font-bold mb-3">
@@ -539,8 +555,39 @@ export default function App() {
               }}
 
             />
-            <HelpModal isVisible={showHelpModal} onClose={() => setShowHelpModal(false)} />
-          </div>
+
+<HelpModal
+      isVisible={showHelpModal}
+      onClose={() => setShowHelpModal(false)}
+    />
+
+    <SettingsModal
+      isVisible={showSettingsModal}
+      onClose={() => setShowSettingsModal(false)}
+      onSwitchToDailyChallenge={() => { setGameMode("daily"); }}
+      onSwitchToGenre={() => { setGameMode("genre"); }}
+      onSwitchToArtist={() => { setGameMode("artist"); }}
+    />
+
+  <OnboardingModal
+      isVisible={showOnboardingModal}
+      onClose={() => setShowOnboardingModal(false)}
+      onSelectDaily={() => {
+        setShowOnboardingModal(false);
+      }}
+      onSelectGenre={() => {
+        setGameMode("genre");
+        setShowOnboardingModal(false);
+        setShowGenreModal(true);
+
+      }}
+      onSelectArtist={() => {
+        setGameMode("artist");
+        setShowOnboardingModal(false);
+        setShowArtistModal(true);
+      }}
+    />
+    </div>
           
         ) : (
           <p className="text-lg">

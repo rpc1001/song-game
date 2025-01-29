@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 
 
@@ -190,7 +192,7 @@ app.get("/genre", async (req, res) => {
 
 app.get("/daily-challenge", async (req, res) => {
   try {
-    const trackId = "497467062";
+    const trackId = "936899";
     const response = await axios.get(`https://api.deezer.com/track/${trackId}`);
     res.json({
       id: response.data.id,
@@ -241,6 +243,38 @@ app.get("/validate-song", async (req, res) => {
   } catch (error) {
     console.error("Error validating song:", error.message);
     res.status(500).json({ error: "Failed to validate song." });
+  }
+});
+
+app.post("/upload-data", async (req, res) => {
+  const { userId, localData } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from('user_data')
+      .upsert({ user_id: userId, data: localData });
+
+    if (error) throw error;
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/get-data", async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    const { data, error } = await supabase
+      .from('user_data')
+      .select('data')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) throw error;
+    res.status(200).json({ data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

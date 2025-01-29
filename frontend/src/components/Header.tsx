@@ -1,8 +1,10 @@
-import { Settings, Share, BarChart, HelpCircle } from "lucide-react";
+import { Settings, BarChart, HelpCircle } from "lucide-react";
+import AuthModal from './AuthModal';
 
 interface HeaderProps {
   setShowStatsModal: (visible: boolean) => void;
   setShowHelpModal: (visible: boolean) => void;
+  setShowSettingsModal: (visibile: boolean) => void;
   setStatsModalContext: (context: "header" | "endGame") => void;
 }
 
@@ -10,6 +12,7 @@ export default function Header( {
   setShowHelpModal,
   setShowStatsModal,
   setStatsModalContext,
+  setShowSettingsModal
 }: HeaderProps) {
 
   return (
@@ -19,7 +22,7 @@ export default function Header( {
         <div className="flex items-center gap-4">
           <button
             className="text-gray-300 p-2 rounded-lg hover:text-white focus:outline-none"
-            onClick={() => {}}
+            onClick={() => {setShowSettingsModal(true)}}
           >
             <Settings size={24} strokeWidth={2} />
           </button>
@@ -27,7 +30,7 @@ export default function Header( {
             className="text-gray-300 p-2 rounded-lg hover:text-white focus:outline-none"
             onClick={() => {}}
           >
-            <Share size={24} strokeWidth={2} />
+          <AuthModal />
           </button>
         </div>
 
