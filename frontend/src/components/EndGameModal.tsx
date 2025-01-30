@@ -116,6 +116,18 @@ export default function EndGameModal({
         />
       )}
 
+    {gameMode === "daily" && onViewStats && (
+        <button
+          onClick={() => {
+            onViewStats();
+            onClose();
+          }}
+          className="bg-purple-500 text-white font-bold px-4 py-2 rounded-lg w-full hover:brightness-75 transition"
+        >
+          View Stats
+        </button>
+      )}
+
       {/* Game Mode Selection Buttons */}
       <div className="mt-4 space-y-4">
 
@@ -137,7 +149,7 @@ export default function EndGameModal({
         >
           Select Genre
         </button>
-        {onViewStats && (
+        {/* {onViewStats && (
         <button
           onClick={() => {
             onViewStats();
@@ -147,7 +159,7 @@ export default function EndGameModal({
         >
           View Stats
         </button>
-      )}
+      )} */}
       </div>
     </Modal>
   );
