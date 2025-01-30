@@ -21,7 +21,7 @@ export default function Modal({ isVisible, onClose, children, dismissible = true
         className="bg-zinc-800 overflow-auto p-6 rounded-lg shadow-lg w-80 text-center relative animate-slideInUp"
         onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
         style={{
-          top: '3.8rem', // align modals with the bottom of the header
+          top: '0.1rem', // align modals with the bottom of the header
           position: 'absolute',
         }}
       >
