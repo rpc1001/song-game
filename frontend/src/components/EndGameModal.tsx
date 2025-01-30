@@ -66,9 +66,9 @@ export default function EndGameModal({
   const description = (
     <>
      {gameMode === "daily"
-      ? "Today's song was "
+      ? "Song of the day was "
       : isGenreDailyRound
-      ? `Today's ${selectedGenre} song was `
+      ? ` ${selectedGenre} song of the day was `
       : "The song was "}
 
     <strong style={{ color: '#f0f0f0' }}>{cleanTitle(song.title)}</strong> by{" "}

@@ -32,20 +32,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         <button
           className="bg-mulberry-500 text-white font-bold px-4 py-2 rounded-lg w-full hover:brightness-90 transition"
           onClick={() => {
-            onSwitchToGenre();
-            onClose();
-          }}
-        >
-          Genre Mode
-        </button>
-        <button
-          className="bg-atomic_tangerine-500 text-white font-bold px-4 py-2 rounded-lg w-full hover:brightness-90 transition"
-          onClick={() => {
             onSwitchToArtist();
             onClose();
           }}
         >
           Artist Mode
+        </button>
+        <button
+          className="bg-atomic_tangerine-500 text-white font-bold px-4 py-2 rounded-lg w-full hover:brightness-90 transition"
+          onClick={() => {
+            onSwitchToGenre();
+            onClose();
+          }}
+        >
+          Genre Mode
         </button>
       </div>
     </Modal>

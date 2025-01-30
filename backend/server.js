@@ -4,6 +4,8 @@ const axios = require("axios");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 
+const cron = require("node-cron"); 
+
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 const app = express();
@@ -28,6 +30,16 @@ const genrePlaylists = {
 
 const genreCache = {};
 const artistCache = {};
+
+cron.schedule("0 8 * * *", async () => {
+  console.log("Running scheduled job: rotateDailies");
+  try {
+    await rotateDailies();
+    console.log("rotateDailies completed successfully.");
+  } catch (error) {
+    console.error("Error during rotateDailies cron job:", error.message);
+  }
+});
 
 // /artist and /genre free-play wont repeat the same track in that session.
 const previouslyPlayedFreePlay = new Set();
@@ -149,21 +161,6 @@ async function updateDailyChallenge(type, allTrackIdsPromise, genre = null) {
     console.error(`Error in updateDailyChallenge(${type}, ${genre}):`, err.message);
   }
 }
-
-app.get("/rotate-dailies", async (req, res) => {
-  const secret = req.query.secret;
-  if (secret !== process.env.ROTATE_SECRET) {
-    return res.status(403).json({ error: "Unauthorized" });
-  }
-
-  try {
-    await rotateDailies();
-    res.json({ success: true, message: "Dailies rotated." });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 
 app.get("/artist", async (req, res) => {
   const { artist } = req.query;
