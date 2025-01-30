@@ -579,7 +579,7 @@ export default function App() {
               }}
               isGenreDailyRound={isGenreDailyRound}
               selectedGenre={selectedGenre}
-              
+
             />
 
     <HelpModal
@@ -591,8 +591,8 @@ export default function App() {
       isVisible={showSettingsModal}
       onClose={() => setShowSettingsModal(false)}
       onSwitchToDailyChallenge={() => { setGameMode("daily"); }}
-      onSwitchToGenre={() => { setGameMode("genre"); }}
-      onSwitchToArtist={() => { setGameMode("artist"); }}
+      onSwitchToGenre={() => { setGameMode("genre"); setShowGenreModal(true); }}
+      onSwitchToArtist={() => { setGameMode("artist"); setShowArtistModal(true); }}
     />
 
   <OnboardingModal
