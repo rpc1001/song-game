@@ -15,6 +15,8 @@ interface EndGameModalProps {
   onChangeGenre?: () => void;
   onChangeArtist?: () => void;
   onViewStats?: () => void;
+  isGenreDailyRound?: boolean;
+  selectedGenre?: string;
 }
 
 
@@ -28,6 +30,9 @@ export default function EndGameModal({
   onNextSong,
   gameMode,
   onViewStats,
+  isGenreDailyRound,
+  selectedGenre,
+
 }: EndGameModalProps) {
   if (!isVisible) return null;
 
@@ -60,7 +65,13 @@ export default function EndGameModal({
   };
   const description = (
     <>
-      The song was <strong style={{ color: '#f0f0f0' }}>{cleanTitle(song.title)}</strong> by{" "}
+     {gameMode === "daily"
+      ? "Today's song was "
+      : isGenreDailyRound
+      ? `Today's ${selectedGenre} song was `
+      : "The song was "}
+
+    <strong style={{ color: '#f0f0f0' }}>{cleanTitle(song.title)}</strong> by{" "}
       {formatContributors(mainContributors)}
       {featuredArtists.length > 0 && (
         <>
@@ -74,13 +85,18 @@ export default function EndGameModal({
 
   return (
     <Modal isVisible={isVisible} onClose={onClose} dismissible={true}>
-      <h2
-        className={`text-2xl font-bold mb-4 ${
-          isCorrect ? "text-green-500" : "text-bright_pink_(crayola)-500"
-        }`}
-      >
-        {isCorrect ? "You Guessed It!" : "Game Over"}
-      </h2>
+    <h2
+      className={`text-2xl font-bold mb-4 ${
+        isCorrect ? "text-green-500" : "text-bright_pink_(crayola)-500"
+      }`}
+    >
+      {isCorrect
+        ? !selectedGenre
+          ? "You Got Today's Song!"
+          : "You Guessed It!"
+        : "Game Over"}
+    </h2>
+
 
       {/* Description */}
       <p className="text-gray-300 mb-4">{description}</p>

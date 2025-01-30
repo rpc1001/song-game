@@ -68,6 +68,9 @@ export default function App() {
   const [isLoadingSong, setIsLoadingSong] = useState<boolean>(false); // track if game can start or not
   const [imageSrc, setImageSrc] = useState<string | null>(null);
 
+  const [isGenreDailyRound, setIsGenreDailyRound] = useState<boolean>(false);
+
+
 
   const inputRef = useRef<HTMLInputElement>(null); // Ref for the active input box
   const audioRef = useRef<HTMLAudioElement | null>(null); // reference to  audio element
@@ -79,13 +82,30 @@ export default function App() {
   };
 
 
+  const todaysDateString = new Date().toLocaleDateString("en-CA"); // e.g. "2025-01-29"
+
+
   const fetchSong = useCallback(async () => {
     setSong(null);
   
     let endpoint = `${BACKEND_URL}/daily-challenge`;
-    if (gameMode === "genre" && selectedGenre) {
-      endpoint = `${BACKEND_URL}/genre?genre=${encodeURIComponent(selectedGenre)}`;
-    } else if (gameMode === "artist" && artistInput) {
+    if (gameMode === "genre") {
+      const playedKey = `genreDailyPlayed_${selectedGenre}`;
+      const lastPlayed = localStorage.getItem(playedKey);
+
+      if (lastPlayed !== todaysDateString) {
+        // hasn't played daily for that genre yet => call /genre-daily
+        endpoint = `${BACKEND_URL}/genre-daily?genre=${encodeURIComponent(selectedGenre)}`;
+        localStorage.setItem(playedKey, todaysDateString)
+        setIsGenreDailyRound(true);  
+
+
+      } else {
+        // already played daily => free play
+        endpoint = `${BACKEND_URL}/genre?genre=${encodeURIComponent(selectedGenre)}`;
+        setIsGenreDailyRound(false); 
+
+      }} else if (gameMode === "artist" && artistInput) {
       endpoint = `${BACKEND_URL}/artist?artist=${encodeURIComponent(artistInput)}`;
     }
 
@@ -482,8 +502,12 @@ export default function App() {
           <div className="text-center w-full max-w-md">
           <h1 className="text-2xl font-bold mb-3">
             {gameMode === "daily" && "Guess the Daily Song"}
-            {gameMode === "genre" && selectedGenre && `Guess the ${selectedGenre} Song`}
-            {gameMode === "artist" && artistInput  && `Guess the ${confirmedArtist?.name || artistInput.trim()} Song`}
+            {gameMode === "genre" && selectedGenre && (
+                isGenreDailyRound
+                  ? `Guess the Daily ${selectedGenre} Song` 
+                  : `Guess the ${selectedGenre} Song`
+              )}
+              {gameMode === "artist" && artistInput  && `Guess the ${confirmedArtist?.name || artistInput.trim()} Song`}
           </h1>
           <GuessSlots
             MAX_GUESSES={MAX_GUESSES}
@@ -553,10 +577,12 @@ export default function App() {
                 setShowStatsModal(true);
                 setShowEndGameModal(false);
               }}
-
+              isGenreDailyRound={isGenreDailyRound}
+              selectedGenre={selectedGenre}
+              
             />
 
-<HelpModal
+    <HelpModal
       isVisible={showHelpModal}
       onClose={() => setShowHelpModal(false)}
     />
