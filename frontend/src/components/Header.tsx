@@ -35,7 +35,7 @@ export default function Header( {
         </div>
 
         {/* Center Title */}
-        <h1 className="text-purple-500 text-3xl font-bold">Muser :-D</h1>
+        <h1 className="text-purple-500 text-3xl font-bold">Muser :D</h1>
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
