@@ -72,8 +72,20 @@ class StatsManager {
     } else if (mode === "genre" && genre) {
       if (!stats.genres[genre]) stats.genres[genre] = this.createAggregatedStats();
       this.updateAggregatedStats(stats.genres[genre], isCorrect, guesses);
-    } else if (mode === "artist" && artist) {
-      if (!stats.artists[artist.name]) stats.artists[artist.name] = this.createAggregatedStats();
+    }  else if (mode === "artist" && artist) {
+      if (!stats.artists[artist.name]) {
+        // create a new aggregator + store the image
+        stats.artists[artist.name] = {
+          ...this.createAggregatedStats(),
+          image: artist.picture_big, // use 'picture_big' from the artist object
+        };
+      } else {
+        // if we already have this artist, we might update the image just in case
+        if (!stats.artists[artist.name].image && artist.picture_big) {
+          stats.artists[artist.name].image = artist.picture_big;
+        }
+      }
+    
       this.updateAggregatedStats(stats.artists[artist.name], isCorrect, guesses);
     }
 
@@ -133,7 +145,7 @@ interface UserStats {
   overall: AggregatedStats;
   dailyChallenge: AggregatedStats;
   genres: Record<string, AggregatedStats>;
-  artists: Record<string, AggregatedStats>;
+  artists: Record<string, ArtistAggregatedStats>;
   songs: Record<string, AggregatedStats>;
   sessionLogs: SessionLog[];
 }
@@ -145,6 +157,10 @@ interface AggregatedStats {
   firstTryGuesses: number;
   currentStreak: number;
   longestStreak: number;
+}
+
+interface ArtistAggregatedStats extends AggregatedStats {
+  image?: string;
 }
 
 interface GameSession {
