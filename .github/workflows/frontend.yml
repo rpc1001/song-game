@@ -20,6 +20,12 @@ jobs:
         with:
           node-version: 18
 
+      - name: Create .env.production File
+        run: |
+          echo "VITE_APP_BACKEND_URL=${{ secrets.VITE_APP_BACKEND_URL }}" >> frontend/.env.production
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> frontend/.env.production
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> frontend/.env.production
+
       - name: Install Dependencies
         run: | 
           cd frontend
